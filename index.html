@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Study Simulators</title>
+<meta name="description" content="Practice exams with new versions, case-by-case drilling, hints and timed simulations for Calculus I, ENGR 102 and CHEM 1309.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{--bg:#f4f5f2;--card:#ffffff;--fg:#1b1f1a;--muted:#5d665b;--line:#d9ddd4;--accent:#3b5bdb;--calc:#c2410c;--engr:#0f766e;--chem:#3b5bdb;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#121512;--card:#1b1f1b;--fg:#e7ebe5;--muted:#9aa597;--line:#2d332c;--accent:#8ea6ff;--calc:#fb923c;--engr:#2dd4bf;--chem:#8ea6ff;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding-block:48px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+h1{font-size:2rem;margin:0;letter-spacing:-.02em;text-wrap:balance}
+.lead{color:var(--muted);margin:8px 0 0;max-width:62ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+a.card{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:12px;padding:18px;color:inherit;text-decoration:none;min-width:0;transition:border-color .15s,transform .15s}
+a.card:hover{border-color:var(--c);transform:translateY(-2px)}
+a.card:focus-visible{outline:3px solid var(--c);outline-offset:2px}
+.course{font:500 .75rem "IBM Plex Mono",ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--c)}
+.card h2{margin:0;font-size:1.2rem}
+.card p{margin:0;color:var(--muted);font-size:.93rem}
+.card ul{margin:0;padding-left:18px;font-size:.9rem;display:flex;flex-direction:column;gap:3px}
+.go{margin-top:auto;font-weight:600;color:var(--c)}
+.how{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.how h2{margin:0 0 8px;font-size:1.05rem}
+.how ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:.95rem}
+footer{color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Study Simulators</h1>
+    <p class="lead">Practice exams that never run out of questions. Every question can get new numbers, step through each homework and exam case, and check itself with worked solutions. Your progress saves in this browser.</p>
+  </header>
+
+  <div class="grid">
+    <a class="card" href="calculus/" style="--c:var(--calc)">
+      <span class="course">MTH 2413 · Calculus I</span>
+      <h2>Exam 4 Practice</h2>
+      <p>Sections 4.4–5.3: graphing, optimization, linear approximation, L’Hôpital, antiderivatives, FTC.</p>
+      <ul><li>58 questions, about 120 cases</li><li>Sketch pad for graphs, exam-style or full workup</li><li>20-question simulator, per-question clock</li></ul>
+      <span class="go">Open →</span>
+    </a>
+    <a class="card" href="engr102/" style="--c:var(--engr)">
+      <span class="course">ENGR 102 · Python</span>
+      <h2>Exam 2 Simulation</h2>
+      <p>Lectures 8–13 plus Exam 1 review: tracing, true/false, fill in the blank, mixed code, writing code.</p>
+      <ul><li>Every program verified by running real Python</li><li>Official review problems</li><li>New version for every question</li></ul>
+      <span class="go">Open →</span>
+    </a>
+    <a class="card" href="chemistry/" style="--c:var(--chem)">
+      <span class="course">CHEM 1309 · Gen Chem</span>
+      <h2>Exam 3 Simulation</h2>
+      <p>Chapters 6–8: configurations and trends, bonding and molecular structure, IMFs.</p>
+      <ul><li>53 question types, about 130 cases</li><li>Slip catcher names the exact mistake</li><li>Simulator, speed drills, copy results</li></ul>
+      <span class="go">Open →</span>
+    </a>
+  </div>
+
+  <section class="how">
+    <h2>How to study with these</h2>
+    <ol>
+      <li>Run the exam simulator under a clock to find what you don’t know yet.</li>
+      <li>Exit the simulation and press <b>New case</b> on each type you missed until every case has a ✓.</li>
+      <li>Use <b>New version</b> to repeat a case until it’s easy, then simulate again.</li>
+    </ol>
+  </section>
+
+  <footer>By Michael Gonzalez.</footer>
+</div>
+</body>
+</html>

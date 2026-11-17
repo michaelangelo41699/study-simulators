@@ -1,0 +1,1362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Exam 3 Simulation</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one reading column of question cards in three chapter sections, sticky progress/timer bar on top. Lab-notebook feel: blue ink on cool paper. */
+:root{
+  --bg:#f3f5f7; --card:#ffffff; --fg:#17202b; --muted:#5b6876; --line:#d6dde4;
+  --accent:#1f5fa8; --accent-soft:#e3edf8;
+  --good:#1d7a46; --good-soft:#e2f3e8; --bad:#b3362c; --bad-soft:#f8e4e1; --warn:#9a6a00; --warn-soft:#f7edd6;
+  --dplus:#c0392b; --dminus:#1f5fa8;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161c; --card:#19212a; --fg:#e6ebf0; --muted:#9aa7b4; --line:#2c3743;
+  --accent:#6aa6ec; --accent-soft:#1d2d40;
+  --good:#5cc68a; --good-soft:#163222; --bad:#ec7b70; --bad-soft:#3a1b18; --warn:#e3b44c; --warn-soft:#3a2f14;
+  --dplus:#ef7d70; --dminus:#6aa6ec; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161c; --card:#19212a; --fg:#e6ebf0; --muted:#9aa7b4; --line:#2c3743;
+  --accent:#6aa6ec; --accent-soft:#1d2d40;
+  --good:#5cc68a; --good-soft:#163222; --bad:#ec7b70; --bad-soft:#3a1b18; --warn:#e3b44c; --warn-soft:#3a2f14;
+  --dplus:#ef7d70; --dminus:#6aa6ec; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+.wrap{max-width:780px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 60px;display:flex;flex-direction:column;gap:18px}
+h1{font-size:1.65rem;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2.sec{font-size:1.2rem;margin:18px 0 0;text-wrap:balance;scroll-margin-top:90px}
+.secsub{color:var(--muted);margin:-10px 0 0;font-size:.92rem}
+.intro{color:var(--muted);margin:0;max-width:65ch}
+.nav{display:flex;flex-wrap:wrap;gap:8px}
+.nav a{color:var(--accent);text-decoration:none;border:1px solid var(--line);background:var(--card);padding:4px 12px;border-radius:999px;font-size:.9rem;font-weight:500}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
+.bar .stat{font-variant-numeric:tabular-nums;font-weight:600}
+.bar .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:500;margin-right:6px}
+.timer.low{color:var(--bad)}
+button{font:inherit;font-weight:600;border-radius:8px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+button.primary{background:var(--accent);color:var(--card);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.q{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.q.graded-full{border-color:var(--good)} .q.graded-zero{border-color:var(--bad)} .q.graded-part{border-color:var(--warn)}
+.onlymissed .q.graded-full{display:none}
+.qhead{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.qnum{font-weight:700}
+.qtype{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.qscore{font-variant-numeric:tabular-nums;font-weight:700}
+.prompt{margin:0}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;min-width:0}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin-top:4px;flex:none;accent-color:var(--accent)}
+.opt .k{font-weight:700;flex:none}
+.opt .body{min-width:0;display:flex;flex-direction:column;gap:6px}
+.opt.right{background:var(--good-soft);border-color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.opt.missed{border-style:dashed;border-color:var(--good)}
+.tag{font-size:.75rem;font-weight:600}
+.opt.right .tag,.opt.missed .tag{color:var(--good)} .opt.wrong .tag{color:var(--bad)}
+.mono{font-family:var(--mono)}
+.ob{display:inline-flex;align-items:center;gap:0;margin-right:12px;flex-wrap:nowrap}
+.ob .obl{font-family:var(--mono);font-size:.85rem;margin-right:6px}
+.ob .box{display:inline-flex;align-items:center;justify-content:center;width:32px;height:26px;border:1.5px solid var(--fg);margin-left:-1.5px;font-family:var(--mono);font-size:.95rem;letter-spacing:-1px}
+.ob .box:first-of-type{margin-left:0}
+.diag{display:flex;flex-wrap:wrap;gap:6px 0;align-items:center}
+svg.mol{width:100%;max-width:260px;height:auto;display:block}
+svg.lewis{width:100%;max-width:300px;height:auto;display:block}
+svg text{font-family:var(--mono)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.92rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.fields{display:flex;flex-direction:column;gap:8px}
+.frow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.frow label{min-width:130px;font-weight:600}
+input[type=text],select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--fg);max-width:100%}
+input[type=text]{width:180px;font-family:var(--mono)}
+.right-f{border-color:var(--good)!important;background:var(--good-soft)!important}
+.wrong-f{border-color:var(--bad)!important;background:var(--bad-soft)!important}
+.ans{font-size:.85rem;font-weight:600;color:var(--good)}
+.hint{font-size:.82rem;color:var(--muted)}
+.explain{background:var(--accent-soft);border-radius:8px;padding:12px 14px;font-size:.95rem}
+.explain p{margin:0 0 6px}
+.explain p:last-child{margin:0}
+.ref{font-size:.82rem;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.status{font-size:.9rem;color:var(--warn);font-weight:600}
+.summary{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.summary h2{margin:0;font-size:1.2rem}
+.chrows{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.chrow{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.chrow b{display:block}
+.meter{height:8px;background:var(--line);border-radius:4px;margin-top:6px;overflow:hidden}
+.meter span{display:block;height:100%;background:var(--accent)}
+.misslist{margin:0;padding-left:18px}
+.misslist li{margin-bottom:4px}
+@media (prefers-reduced-motion:no-preference){.q{transition:border-color .2s}}
+
+button.small{padding:5px 10px;font-size:.85rem}
+.qtools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.qtools select.cs{max-width:100%;min-width:0;font-size:.85rem;padding:4px 6px}
+.qcase{font-size:.86rem;color:var(--muted);margin:-4px 0 0}
+.qcase b{color:var(--fg);font-weight:600}
+.qver{font-size:.78rem;color:var(--muted)}
+.phelp{display:flex;gap:6px;flex-wrap:wrap}
+.hintbox{background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:6px;padding:8px 12px;font-size:.93rem}
+.slip{background:var(--bad-soft);border-left:3px solid var(--bad);border-radius:6px;padding:8px 12px;font-size:.92rem;flex-basis:100%}
+.modebox{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:.95rem}
+.modebox label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.modebox .hint{flex-basis:100%}
+.simbox,.drillbox{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;background:var(--accent-soft);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:12px 14px}
+.simbox>div:first-child,.drillbox>div:first-child{min-width:0;flex:1 1 260px}
+.simbox.on{border-left-color:var(--bad)}
+.simset{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.92rem}
+.simset label{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.pqbar{flex:1 1 100%;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.pqbar span{display:block;height:100%;width:100%;background:var(--accent);transition:width 1s linear}
+.pqbar.low span{background:var(--bad)}
+.drpanel{flex:1 1 100%;display:flex;flex-direction:column;gap:10px}
+.drq{font-size:1.4rem;font-weight:600;text-align:center;padding:8px 0}
+.drq .dim{font-size:.9rem;color:var(--muted);font-weight:400}
+.dopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px}
+.dopt{font-weight:500}
+.dopt.right{background:var(--good-soft);border-color:var(--good)}
+.dopt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.drfb{min-height:1.4em;text-align:center;font-weight:600}
+.drstats{font-size:.88rem;color:var(--muted);text-align:center}
+.exportwrap{display:flex;flex-direction:column;gap:6px}
+#exportBox{width:100%;box-sizing:border-box;font-family:var(--mono);font-size:.8rem;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.k2{display:block;font-weight:600;font-size:.85rem;margin-bottom:2px}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <h1>Exam 3 Simulation</h1>
+    <p class="intro">Every question type from the Test 3 Study Guide (Chapters 6, 7 and 8), 53 question types in all. Each one has <b>New version</b> (same case, new species or numbers), <b>New case</b> and a case menu that step through every variation (✓ marks the cases you've gotten fully right), and <b>Original</b>. Practice mode adds hints and a slip catcher that names the exact slip when a numeric answer is wrong. Your answers save in this browser.</p>
+    <nav class="nav" id="nav" aria-label="Sections"><a href="#ch6">Ch 6</a><a href="#ch7">Ch 7</a><a href="#ch8">Ch 8</a><a href="#drillBox">Speed drills</a></nav>
+  </header>
+
+  <div class="bar">
+    <div><span class="lbl">Answered</span><span class="stat" id="answered">0 / 53</span></div>
+    <div><span class="lbl">Score</span><span class="stat" id="score">–</span></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="stat timer" id="timer" hidden>2:00:00</span>
+      <select id="tlen" aria-label="Timer length"><option value="60">60 min</option><option value="75">75 min</option><option value="90">90 min</option><option value="120" selected>2 hr</option></select>
+      <button id="timerBtn" type="button" class="small">Start timer</button>
+    </div>
+    <div class="pqbar" id="pqBar" hidden><span></span></div>
+  </div>
+
+  <div class="modebox" id="modeBox"><b>Mode:</b>
+    <label><input type="radio" name="mode" id="modePractice" value="practice" checked> Practice (hints, check each question)</label>
+    <label><input type="radio" name="mode" id="modeExam" value="exam"> Exam (hints locked)</label>
+    <span class="hint" id="modeHint"></span>
+  </div>
+
+  <div class="simbox" id="simBox">
+    <div><b id="simTitle">Exam simulator</b> <span class="intro" id="simText" style="display:block;font-size:.9rem"></span></div>
+    <div class="row"><button id="simBtn" class="primary" type="button">Start exam simulation</button><button id="simExit" type="button" hidden>Exit simulation</button></div>
+    <div class="simset" id="simSet"><label>Clock <select id="simClock">
+      <option value="60">Whole exam: 60 min</option><option value="75" selected>Whole exam: 75 min</option><option value="90">Whole exam: 90 min</option><option value="120">Whole exam: 2 hr</option>
+      <option value="-60">1 min per question</option><option value="-90">1.5 min per question</option><option value="-120">2 min per question</option><option value="-150">2.5 min per question</option><option value="-180">3 min per question</option><option value="-300">5 min per question</option></select></label></div>
+  </div>
+
+  <div class="drillbox" id="drillBox">
+    <div><b>Speed drills</b> <span class="intro" style="display:block;font-size:.9rem">Quick-fire cards for the lookups you shouldn't spend exam time on. Your best average time is saved (needs 10+ cards at 80%+ correct).</span></div>
+    <div class="row"><select id="drDeck" aria-label="Drill deck"></select><button id="drStart" type="button" class="primary">Start drill</button></div>
+    <div class="drpanel" id="drPanel" hidden><div class="drq" id="drQ"></div><div class="dopts" id="drOpts"></div><div class="drfb" id="drFb"></div><div class="drstats" id="drStats"></div></div>
+  </div>
+
+  <form id="quiz" style="display:flex;flex-direction:column;gap:18px" novalidate></form>
+
+  <div class="summary" id="summary" hidden></div>
+  <div class="actions">
+    <button class="primary" id="gradeBtn" type="button">Grade exam</button>
+    <button class="primary" id="pqNext" type="button" hidden>Next question →</button>
+    <button id="missBtn" type="button" hidden>Show only missed</button>
+    <button id="newExamBtn" type="button">New version of every question</button>
+    <button id="origExamBtn" type="button">Original exam</button>
+    <button id="retryBtn" type="button">Start over</button>
+    <button id="exportBtn" type="button">Copy results for Claude</button>
+    <span class="status" id="status"></span>
+  </div>
+  <div class="exportwrap" id="exportWrap" hidden>
+    <p class="hint" id="exportMsg" style="margin:0"></p>
+    <textarea id="exportBox" readonly rows="10" aria-label="Results to paste into the chat"></textarea>
+  </div>
+</div>
+
+<script>
+const ELEM=[null,["H","Hydrogen",1,1,25.0,[1312]],["He","Helium",18,1,120.0,[2372,5250]],["Li","Lithium",1,2,145.0,[520,7298,11815]],["Be","Beryllium",2,2,105.0,[900,1757,14849,21007]],["B","Boron",13,2,85.0,[801,2427,3660,25026,32827]],["C","Carbon",14,2,70.0,[1086,2353,4620,6223,37831,47277]],["N","Nitrogen",15,2,65.0,[1402,2856,4578,7475,9445,53266,64360]],["O","Oxygen",16,2,60.0,[1314,3389,5300,7469,10990,13326,71334,84078]],["F","Fluorine",17,2,50.0,[1681,3374,6050,8411,11023,15164,17868,92037]],["Ne","Neon",18,2,160.0,[2081,3952,6119,9377,12181,15238,19999,23069]],["Na","Sodium",1,3,180.0,[496,4562,6910,9546,13354,16618,20118,25491]],["Mg","Magnesium",2,3,150.0,[738,1451,7733,10542,13636,18020,21711,25658]],["Al","Aluminum",13,3,125.0,[578,1817,2745,11577,14842,18379,23326,27463]],["Si","Silicon",14,3,110.0,[787,1577,3232,4356,16091,19806,23790,29292]],["P","Phosphorus",15,3,100.0,[1012,1907,2914,4964,6274,21268,25431,29872]],["S","Sulfur",16,3,100.0,[1000,2252,3363,4556,7004,8496,27108,31724]],["Cl","Chlorine",17,3,100.0,[1251,2298,3840,5137,6530,9353,11019,33606]],["Ar","Argon",18,3,71.0,[1521,2666,3930,5749,7221,8808,12004,13841]],["K","Potassium",1,4,220.0,[419,3051,4419,5878,7975,9594,11343,14943]],["Ca","Calcium",2,4,180.0,[590,1145,4912,6491,8138,10496,12274,14206]],["Sc","Scandium",3,4,160.0,[633,1235,2389,7091,8872,10679,13314,15252]],["Ti","Titanium",4,4,140.0,[659,1310,2653,4175,9581,11533,13574,16451]],["V","Vanadium",5,4,135.0,[651,1412,2828,4507,6299,12362,14542,16745]],["Cr","Chromium",6,4,140.0,[653,1591,2987,4743,6702,8745,15466,17827]],["Mn","Manganese",7,4,140.0,[717,1509,3248,4941,6986,9224,11501,18863]],["Fe","Iron",8,4,140.0,[762,1563,2957,5298,7236,9551,12057,14575]],["Co","Cobalt",9,4,135.0,[760,1648,3232,4947,7671,9841,12437,15225]],["Ni","Nickel",10,4,135.0,[737,1753,3395,5299,7339,10420,12736,15631]],["Cu","Copper",11,4,135.0,[745,1958,3555,5536,7700,9938,13411,16017]],["Zn","Zinc",12,4,135.0,[906,1733,3833,5748,7970,10420,12919,16779]],["Ga","Gallium",13,4,130.0,[579,1979,2965,6102,8299,10874,13585,16393]],["Ge","Germanium",14,4,125.0,[762,1537,3286,4411,8732,11183,13981,17020]],["As","Arsenic",15,4,115.0,[944,1794,2735,4839,6056,11693,14183,17367]],["Se","Selenium",16,4,115.0,[941,2045,3058,4144,6590,7895,14987,17753]],["Br","Bromine",17,4,115.0,[1140,2083,3365,4610,5750,8432,9941,18584]],["Kr","Krypton",18,4,null,[1351,2350,3458,4906,6242,7573,10529,12138]],["Rb","Rubidium",1,5,235.0,[403,2633,3787,5037,6603,7999,9520,12812]],["Sr","Strontium",2,5,200.0,[549,1064,4138,5430,6821,8491,10034,11695]],["Y","Yttrium",3,5,180.0,[600,1179,1980,5848,7270,8818,10615,12362]],["Zr","Zirconium",4,5,155.0,[640,1267,2236,3321,7752,9299,10806,12900]],["Nb","Niobium",5,5,145.0,[652,1382,2416,3629,4880,9848,11491,13122]],["Mo","Molybdenum",6,5,145.0,[684,1559,2618,3891,5250,6641,12122,13855]],["Tc","Technetium",7,5,135.0,[687,1472,2851,3956,5500,6947,8491,14473]],["Ru","Ruthenium",8,5,130.0,[710,1617,2747,4342,5693,7333,8973,10613]],["Rh","Rhodium",9,5,135.0,[720,1744,2997,4052,6079,7719,9359,11105]],["Pd","Palladium",10,5,140.0,[804,1875,3177,4438,5886,8114,9745,11578]],["Ag","Silver",11,5,160.0,[731,2073,3358,4728,6272,7912,10227,12061]],["Cd","Cadmium",12,5,155.0,[868,1631,3615,4921,6551,8394,10131,12553]],["In","Indium",13,5,155.0,[558,1821,2706,5350,6686,8684,10517,12553]],["Sn","Tin",14,5,145.0,[709,1412,2943,3931,7432,9070,10893,13025]],["Sb","Antimony",15,5,145.0,[831,1604,2443,4226,5307,9601,11289,13411]],["Te","Tellurium",16,5,140.0,[869,1795,2686,3610,5722,6667,11983,13797]],["I","Iodine",17,5,140.0,[1008,1846,2853,3894,4971,7178,8453,14551]],["Xe","Xenon",18,5,null,[1170,2024,2996,4072,5220,6436,8838,10225]],["Cs","Cesium",1,6,260.0,[376,2234,3203,4149,5403,6667,7999,10623]],["Ba","Barium",2,6,215.0,[503,965,3458,4535,5596,6850,8298,9745]]];
+
+/* ================== helpers ================== */
+const mkRng=seed=>{let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};};
+const ri=(r,a,b)=>a+Math.floor(r()*(b-a+1));
+const pick=(r,a)=>a[Math.floor(r()*a.length)];
+const shuf=(r,a)=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const sample=(r,a,k)=>shuf(r,a).slice(0,k);
+const uniq=a=>[...new Set(a)];
+const MINUS='−';
+const sgn=n=>n>0?`+${n}`:n<0?`${MINUS}${-n}`:'0';
+/* formula: digits after a letter or ) become subscripts */
+const sub=s=>s.replace(/([A-Za-z)\]])(\d+)/g,'$1<sub>$2</sub>');
+const F=s=>`<span class="mono">${sub(s)}</span>`;
+const chg=q=>q===0?'':`<sup>${Math.abs(q)===1?'':Math.abs(q)}${q>0?'+':MINUS}</sup>`;
+const ionF=(f,q)=>`${F(f)}${chg(q)}`;
+const sup=s=>s.replace(/([spdf])(\d+)/g,'$1<sup>$2</sup>');
+const cfgH=s=>`<span class="mono">${sup(s)}</span>`;
+const ob=(lbl,boxes)=>`<span class="ob"><span class="obl">${lbl}</span>${boxes.map(b=>`<span class="box">${b||'&nbsp;'}</span>`).join('')}</span>`;
+const diag=parts=>`<span class="diag">${parts.join('')}</span>`;
+const fx=(v,d=2)=>{if(v===0)return '0';const a=Math.abs(v);if(a<1e-3||a>=1e5){const e=Math.floor(Math.log10(a));const m=v/10**e;return `${m.toFixed(d)} × 10<sup>${e<0?MINUS+(-e):e}</sup>`;}return String(+v.toFixed(d));};
+
+/* ================== elements ================== */
+/* ELEM[z] = [symbol, name, group(1-18), period, radius pm, [IE1..IE8 kJ/mol]] (from mendeleev) */
+const SYM={};ELEM.forEach((e,z)=>{if(e)SYM[e[0]]=z;});
+const el=s=>ELEM[SYM[s]];
+const NAME=s=>el(s)[1];
+const GRP=s=>el(s)[2],PER=s=>el(s)[3];
+const AGROUP=s=>{const g=GRP(s);return g<=2?g:g>=13?g-10:null;};   /* 1A–8A numbering */
+const ORDER=['1s','2s','2p','3s','3p','4s','3d','4p','5s','4d','5p','6s'];
+const CAP={s:2,p:6,d:10,f:14};
+const EXC={24:{'4s':1,'3d':5},29:{'4s':1,'3d':10},42:{'5s':1,'4d':5},47:{'5s':1,'4d':10}};
+const NOBLE=[[2,'He'],[10,'Ne'],[18,'Ar'],[36,'Kr'],[54,'Xe']];
+function cfgArr(z){let left=z;const out=[];for(const o of ORDER){if(left<=0)break;const n=Math.min(CAP[o[1]],left);out.push([o,n]);left-=n;}
+  if(EXC[z]){for(const [o,n] of Object.entries(EXC[z])){const k=out.findIndex(x=>x[0]===o);if(k>=0)out[k][1]=n;else out.push([o,n]);}}
+  return out;}
+function coreOf(z){let c=null;for(const [nz,s] of NOBLE)if(nz<z)c=[nz,s];return c;}
+function cfgStr(z,condensed=true){const a=cfgArr(z);if(!condensed)return a.map(([o,n])=>o+n).join(' ');
+  const c=coreOf(z);if(!c)return a.map(([o,n])=>o+n).join(' ');
+  const core=cfgArr(c[0]).map(x=>x[0]);const rest=a.filter(([o])=>!core.includes(o)||false);
+  return `[${c[1]}] `+rest.map(([o,n])=>o+n).join(' ');}
+/* electrons from a config array */
+const cfgCount=a=>a.reduce((s,x)=>s+x[1],0);
+function valenceMain(z){const a=cfgArr(z);const nmax=Math.max(...a.map(x=>+x[0][0]));return a.filter(x=>+x[0][0]===nmax).reduce((s,x)=>s+x[1],0);}
+/* ion configuration: remove from highest n first (s before d for same n... highest n shell), add to next open */
+function ionArr(z,q){let a=cfgArr(z).map(x=>[...x]);
+  if(q>0){const nmax=Math.max(...a.map(x=>+x[0][0]));for(let k=0;k<q;k++){const live=a.filter(x=>x[1]>0);
+      const top=live.filter(x=>+x[0][0]===nmax);const ds=live.filter(x=>x[0][1]==='d');
+      /* highest-n p, then highest-n s, then the outer d, then the next shell down */
+      const t=top.find(x=>x[0][1]==='p')||top.find(x=>x[0][1]==='s')||ds[ds.length-1]||top[top.length-1];t[1]--;}
+    a=a.filter(x=>x[1]>0);}
+  else if(q<0){a=cfgArr(z-q);}
+  return a;}
+function ionStr(z,q){const a=ionArr(z,q);const n=cfgCount(a);let c=null;for(const [nz,s] of NOBLE)if(nz<=n)c=[nz,s];
+  if(c&&c[0]===n)return `[${c[1]}]`;
+  if(!c)return a.map(([o,k])=>o+k).join(' ');
+  /* core = the noble gas below the NEUTRAL atom (keeps [Ar] 3d6 style) */
+  const nc=coreOf(z);const core=cfgArr(nc[0]).map(x=>x[0]);
+  const rest=a.filter(([o])=>!core.includes(o));return `[${nc[1]}] `+rest.map(([o,k])=>o+k).join(' ');}
+function dCount(a){const d=a.find(x=>x[0][1]==='d'&&x[0]!==undefined&&x===a.filter(y=>y[0][1]==='d').slice(-1)[0]);return d?d[1]:0;}
+function unpairedArr(a){let u=0;for(const [o,n] of a){const c=CAP[o[1]],orb=c/2;u+=n<=orb?n:c-n;}return u;}
+
+/* Pauling electronegativities, one decimal (cheat-sheet style) */
+const EN={H:2.1,Li:1.0,Be:1.5,B:2.0,C:2.5,N:3.0,O:3.5,F:4.0,Na:0.9,Mg:1.2,Al:1.5,Si:1.8,P:2.1,S:2.5,Cl:3.0,K:0.8,Ca:1.0,Ga:1.6,Ge:1.8,As:2.0,Se:2.4,Br:2.8,Rb:0.8,Sr:1.0,In:1.7,Sn:1.8,Sb:1.9,Te:2.1,I:2.5,Cs:0.7,Ba:0.9,Zn:1.6,Fe:1.8,Cu:1.9,Ag:1.9,Ti:1.5,Cr:1.6,Mn:1.5,Ni:1.8,Co:1.8};
+const bondType=d=>d<=0.4+1e-9?'nonpolar covalent':d<1.8-1e-9?'polar covalent':'ionic';
+
+/* main-group elements usable for trend questions (no noble gases, no H) */
+const MAIN=['Li','Be','B','C','N','O','F','Na','Mg','Al','Si','P','S','Cl','K','Ca','Ga','Ge','As','Se','Br','Rb','Sr','In','Sn','Sb','Te','I'];
+
+/* ================== lattice energies (kJ/mol) and ion data ================== */
+const LAT={LiF:1037,LiCl:852,LiBr:815,LiI:761,NaF:923,NaCl:786,NaBr:747,NaI:704,KF:821,KCl:715,KBr:682,KI:649,RbF:785,RbCl:689,CsF:740,CsCl:659,
+  MgO:3850,CaO:3460,SrO:3220,BaO:3054,MgS:3406,CaS:3119,MgF2:2957,CaF2:2630,SrF2:2492,MgCl2:2526,CaCl2:2258,BaCl2:2056,Al2O3:15916};
+const LATQ={LiF:[1,1],LiCl:[1,1],LiBr:[1,1],LiI:[1,1],NaF:[1,1],NaCl:[1,1],NaBr:[1,1],NaI:[1,1],KF:[1,1],KCl:[1,1],KBr:[1,1],KI:[1,1],RbF:[1,1],RbCl:[1,1],CsF:[1,1],CsCl:[1,1],
+  MgO:[2,2],CaO:[2,2],SrO:[2,2],BaO:[2,2],MgS:[2,2],CaS:[2,2],MgF2:[2,1],CaF2:[2,1],SrF2:[2,1],MgCl2:[2,1],CaCl2:[2,1],BaCl2:[2,1],Al2O3:[3,2]};
+
+/* Born–Haber data (kJ/mol) */
+const SUBL={Li:159,Na:107,K:89,Rb:81,Cs:76,Mg:147,Ca:178,Sr:164,Ba:180};
+const IE12={Li:[520,7298],Na:[496,4562],K:[419,3051],Rb:[403,2633],Cs:[376,2234],Mg:[738,1451],Ca:[590,1145],Sr:[549,1064],Ba:[503,965]};
+const BEX={F:159,Cl:243};
+const EAX={F:-328,Cl:-349};
+const HF={LiF:-616,NaF:-574,KF:-567,RbF:-558,CsF:-554,LiCl:-409,NaCl:-411,KCl:-437,RbCl:-435,CsCl:-443,MgCl2:-641,CaCl2:-796,SrCl2:-829,BaCl2:-859,MgF2:-1124,CaF2:-1228};
+
+/* ion pairs for Coulomb's law: [cation, q+, anion, q−, typical distance pm] */
+const IONPAIRS=[['Na',1,'Cl',1,283],['K',1,'Br',1,329],['Li',1,'F',1,201],['K',1,'Cl',1,314],['Na',1,'F',1,231],['Cs',1,'I',1,381],
+  ['Mg',2,'O',2,205],['Ca',2,'O',2,240],['Sr',2,'O',2,257],['Ba',2,'S',2,320],['Mg',2,'S',2,260],
+  ['Al',3,'O',2,190],['Mg',2,'F',1,201],['Ca',2,'Cl',1,281],['Al',3,'F',1,180]];
+
+/* ================== molecules for VSEPR / polarity / hybridization ==================
+  f: formula, q: charge, c: central atom, X: atoms bonded to center, E: lone pairs on center, p: polar (null for ions) */
+const MOLS=[
+ {f:'CO2',c:'C',X:2,E:0,p:0},{f:'BeCl2',c:'Be',X:2,E:0,p:0},{f:'HCN',c:'C',X:2,E:0,p:1},{f:'CS2',c:'C',X:2,E:0,p:0},
+ {f:'BF3',c:'B',X:3,E:0,p:0},{f:'SO3',c:'S',X:3,E:0,p:0},{f:'CH2O',c:'C',X:3,E:0,p:1},{f:'NO3',q:-1,c:'N',X:3,E:0},{f:'CO3',q:-2,c:'C',X:3,E:0},{f:'BCl3',c:'B',X:3,E:0,p:0},
+ {f:'SO2',c:'S',X:2,E:1,p:1},{f:'O3',c:'O',X:2,E:1,p:1},{f:'NO2',q:-1,c:'N',X:2,E:1},
+ {f:'CH4',c:'C',X:4,E:0,p:0},{f:'CCl4',c:'C',X:4,E:0,p:0},{f:'CH2Cl2',c:'C',X:4,E:0,p:1},{f:'CHCl3',c:'C',X:4,E:0,p:1},{f:'SiF4',c:'Si',X:4,E:0,p:0},{f:'CH3Cl',c:'C',X:4,E:0,p:1},{f:'NH4',q:1,c:'N',X:4,E:0},{f:'SO4',q:-2,c:'S',X:4,E:0},
+ {f:'NH3',c:'N',X:3,E:1,p:1},{f:'NF3',c:'N',X:3,E:1,p:1},{f:'PCl3',c:'P',X:3,E:1,p:1},{f:'H3O',q:1,c:'O',X:3,E:1},{f:'SO3',q:-2,c:'S',X:3,E:1},{f:'ClO3',q:-1,c:'Cl',X:3,E:1},
+ {f:'H2O',c:'O',X:2,E:2,p:1},{f:'OF2',c:'O',X:2,E:2,p:1},{f:'H2S',c:'S',X:2,E:2,p:1},{f:'SCl2',c:'S',X:2,E:2,p:1},{f:'ClO2',q:-1,c:'Cl',X:2,E:2},
+ {f:'PCl5',c:'P',X:5,E:0,p:0},{f:'PF5',c:'P',X:5,E:0,p:0},{f:'AsF5',c:'As',X:5,E:0,p:0},
+ {f:'SF4',c:'S',X:4,E:1,p:1},{f:'SeCl4',c:'Se',X:4,E:1,p:1},
+ {f:'ClF3',c:'Cl',X:3,E:2,p:1},{f:'BrF3',c:'Br',X:3,E:2,p:1},
+ {f:'XeF2',c:'Xe',X:2,E:3,p:0},{f:'I3',q:-1,c:'I',X:2,E:3},{f:'KrF2',c:'Kr',X:2,E:3,p:0},
+ {f:'SF6',c:'S',X:6,E:0,p:0},{f:'SeF6',c:'Se',X:6,E:0,p:0},{f:'PF6',q:-1,c:'P',X:6,E:0},
+ {f:'BrF5',c:'Br',X:5,E:1,p:1},{f:'IF5',c:'I',X:5,E:1,p:1},
+ {f:'XeF4',c:'Xe',X:4,E:2,p:0},{f:'ICl4',q:-1,c:'I',X:4,E:2}];
+MOLS.forEach(m=>{m.q=m.q||0;if(m.p===undefined)m.p=null;m.h=ionF(m.f,m.q);});
+const SHAPE_OF={'2,0':'linear','3,0':'trigonal planar','2,1':'bent','4,0':'tetrahedral','3,1':'trigonal pyramidal','2,2':'bent','5,0':'trigonal bipyramidal','4,1':'seesaw','3,2':'T-shaped','2,3':'linear','6,0':'octahedral','5,1':'square pyramidal','4,2':'square planar'};
+const EGEOM={2:'linear',3:'trigonal planar',4:'tetrahedral',5:'trigonal bipyramidal',6:'octahedral'};
+const HYBOF={2:'sp',3:'sp²',4:'sp³',5:'sp³d',6:'sp³d²'};
+const ANGLE={2:'180°',3:'120°',4:'109.5°',5:'90° and 120°',6:'90°'};
+const shapeOf=m=>SHAPE_OF[m.X+','+m.E];
+const SHAPES=['linear','bent','trigonal planar','trigonal pyramidal','tetrahedral','seesaw','T-shaped','trigonal bipyramidal','square pyramidal','square planar','octahedral'];
+const EGEOMS=['linear','trigonal planar','tetrahedral','trigonal bipyramidal','octahedral'];
+const HYB=['sp','sp²','sp³','sp³d','sp³d²'];
+const BT=['nonpolar covalent','polar covalent','ionic'];
+const IMF=['dispersion only','dipole–dipole','hydrogen bonding','ionic'];
+const PH=['solid','liquid','gas'];
+
+/* valence electrons by main-group element */
+const VAL={H:1,He:2,Li:1,Be:2,B:3,C:4,N:5,O:6,F:7,Ne:8,Na:1,Mg:2,Al:3,Si:4,P:5,S:6,Cl:7,Ar:8,K:1,Ca:2,Ga:3,Ge:4,As:5,Se:6,Br:7,Kr:8,Rb:1,Sr:2,In:3,Sn:4,Sb:5,Te:6,I:7,Xe:8};
+function parseF(f){const out={};const re=/([A-Z][a-z]?)(\d*)/g;let m;while((m=re.exec(f))){out[m[1]]=(out[m[1]]||0)+(m[2]?+m[2]:1);}return out;}
+const totalVal=(f,q)=>Object.entries(parseF(f)).reduce((s,[e,n])=>s+VAL[e]*n,0)-q;
+
+/* ================== substances: IMF and real boiling points (°C) ================== */
+/* t: strongest IMF index into IMF[], bp, mp (when used), n: display */
+const SUBS={
+ He:{t:0,bp:-269},Ne:{t:0,bp:-246},Ar:{t:0,bp:-186},Kr:{t:0,bp:-153},Xe:{t:0,bp:-108},H2:{t:0,bp:-253},N2:{t:0,bp:-196},O2:{t:0,bp:-183},F2:{t:0,bp:-188},Cl2:{t:0,bp:-34},Br2:{t:0,bp:59},I2:{t:0,bp:184},
+ CH4:{t:0,bp:-162},C2H6:{t:0,bp:-89},C3H8:{t:0,bp:-42},C4H10:{t:0,bp:-1},C5H12:{t:0,bp:36},C6H14:{t:0,bp:69},C8H18:{t:0,bp:126},CCl4:{t:0,bp:77},CO2:{t:0,bp:-78},
+ HCl:{t:1,bp:-85},HBr:{t:1,bp:-67},HI:{t:1,bp:-35},H2S:{t:1,bp:-60},CH3Cl:{t:1,bp:-24},CH2Cl2:{t:1,bp:40},CHCl3:{t:1,bp:61},SO2:{t:1,bp:-10},CH2O:{t:1,bp:-19},CH3CHO:{t:1,bp:20},'(CH3)2CO':{t:1,bp:56},CH3OCH3:{t:1,bp:-24},PH3:{t:1,bp:-88},
+ HF:{t:2,bp:20},H2O:{t:2,bp:100},NH3:{t:2,bp:-33},CH3OH:{t:2,bp:65},CH3CH2OH:{t:2,bp:78},CH3CH2CH2OH:{t:2,bp:97},CH3COOH:{t:2,bp:118},HCOOH:{t:2,bp:101},
+ NaCl:{t:3,bp:1413},NaF:{t:3,bp:1695},KCl:{t:3,bp:1420},CaCl2:{t:3,bp:1935},MgO:{t:3,bp:3600},KBr:{t:3,bp:1435}};
+const SUBNAME={'(CH3)2CO':'acetone','CH3OCH3':'dimethyl ether','CH3CHO':'acetaldehyde','CH2O':'formaldehyde','CH3COOH':'acetic acid','HCOOH':'formic acid','CH3CH2CH2OH':'1-propanol','C8H18':'octane','C6H14':'hexane','C5H12':'pentane','C4H10':'butane'};
+const subH=k=>`${F(k)}${SUBNAME[k]?` (${SUBNAME[k]})`:''}`;
+
+/* ================== question builders ================== */
+const TT={single:'Multiple choice',multi:'Select ALL that apply',match:'Matching',numeric:'Numeric',text:'Fill in the blank'};
+function MC(r,prompt,right,wrongs,ex,o={}){const w=uniq(wrongs).filter(x=>x!==right).slice(0,o.nw||4);return {type:'single',title:TT.single,prompt,opts:shuf(r,[{html:right,c:1},...w.map(h=>({html:h}))]),ex,...o};}
+function MCfixed(prompt,opts,ex,o={}){return {type:'single',title:TT.single,prompt,opts,ex,...o};}
+function MULTI(r,prompt,items,ex,o={}){return {type:'multi',title:TT.multi,prompt,opts:o.noshuf?items:shuf(r,items),ex,...o};}
+function MATCH(prompt,choices,rows,ex,o={}){return {type:'match',title:TT.match,prompt,choices,rows,ex,...o};}
+function NUM(prompt,fields,ex,o={}){fields.forEach(f=>{const tol=f.rel!=null?Math.abs(f.ans)*f.rel:(f.abs||0)+1e-9;f.traps=(f.traps||[]).filter(([v])=>Number.isFinite(v)&&Math.abs(v-f.ans)>tol);});return {type:'numeric',title:TT.numeric,prompt,fields,ex,...o};}
+function TXT(prompt,fields,ex,o={}){return {type:'text',title:TT.text,prompt,fields,ex,...o};}
+/* ranking question: items, numeric key, label; dir 'increasing' | 'decreasing' */
+function rankQ(r,items,key,lab,dir,prompt,ex,o={}){
+  const s=[...items].sort((a,b)=>dir==='increasing'?key(a)-key(b):key(b)-key(a));
+  const str=a=>a.map(lab).join(dir==='increasing'?' < ':' > ');const right=str(s);
+  const w=[];for(let k=0;k<s.length-1;k++){const t=[...s];[t[k],t[k+1]]=[t[k+1],t[k]];w.push(str(t));}
+  w.push(str([...s].reverse()));for(let k=0;k<20&&uniq(w).length<8;k++)w.push(str(shuf(r,s)));
+  return MC(r,prompt,right,sample(r,uniq(w).filter(x=>x!==right),3),ex,o);}
+
+/* ================== CHAPTER 6 ================== */
+const H6={
+ cfgEl:['Count electrons: core noble gas Z plus every superscript. For a neutral atom, total electrons = Z.','Add the core’s Z to the sum of the superscripts, then find that atomic number on the table.'],
+ orb:['“Ground state orbital diagram” → apply three rules: Aufbau (fill lower first), Pauli (opposite spins in a box), Hund (one per box, parallel, before pairing).','Count valence e⁻, fill s first, then one ↑ per p (or d) box, then pair.'],
+ ta:['A drawn diagram to grade → check each rule separately and the total count.','Total = valence e⁻? s full before p? any ↑↑ box? any pairing while a box is empty (or antiparallel singles)?'],
+ exc:['Cr and Mo (half-full d⁵) and Cu and Ag (full d¹⁰) are the exceptions: one s electron moves into d.','Write the Aufbau configuration first, then check whether the element is in the Cr or Cu column.'],
+ val:['Main-group element → valence = electrons in the highest n shell only.','Add the superscripts of the largest n. A filled (n−1)d¹⁰ is core.'],
+ ion:['Ion configuration → cations lose electrons from the highest n first (4s before 3d); anions add electrons to the next open orbital.','Remove (or add) electrons, then count unpaired electrons: d boxes fill one ↑ each before pairing.'],
+ exs:['Excited state = an electron sits in a higher orbital while a lower one has room.','Look for a partly empty lower subshell followed by electrons in a higher one. Exceptions (Cr, Cu) are real ground states.'],
+ nl:['n = shell number, ℓ: s = 0, p = 1, d = 2.','Write the ion’s configuration first, then read the outermost (or last-filled) subshell.'],
+ rad:['Atomic radius: shrinks left → right (higher Z_eff), grows top → bottom (more shells).','Place each element on the table, then order by period first, and by group within a period.'],
+ ie:['Ionization energy: the reverse of size. It rises left → right and falls top → bottom.','Watch the two exceptions in a period: 2A > 3A (Be > B) and 5A > 6A (N > O).'],
+ sie:['Successive IEs → find the huge jump. The number of IEs before it = valence electrons.','Valence count + period → group → element.'],
+ iso:['Same number of electrons (isoelectronic) → more protons pull them in tighter → smaller.','Rank by Z: lowest Z = biggest ion. Cations are smaller than their atoms; anions are larger.'],
+ ea:['Electron affinity anomalies: added electron must pair in a half-full p (5A), or enter a new sublevel (2A) or shell (8A).','Look at where the added electron would go.'],
+ ox:['Oxide behavior: nonmetal oxide → acidic; metal oxide → basic; Al₂O₃, ZnO, BeO → amphoteric.','Classify the element as metal or nonmetal.'],
+ sh:['Shielding/penetration: inner electrons shield outer ones; electrons that penetrate closer feel more Z_eff.','One-electron atoms have no shielding, so sublevels in the same shell are degenerate.'],
+ pos:['Valence configuration → position: n = period; s/p/d = block; count across the block for the group.','For p-block: group (A) = s + p electrons. For d-block: group number = s + d electrons.'],
+ tr:['Electronegativity and Z_eff rise up and to the right; metallic character rises down and to the left.','Place each element, then order by period and group.']};
+
+const SBLK=[3,4,11,12,19,20,37,38],PB23=[5,6,7,8,9,13,14,15,16,17],PB45=[31,32,33,34,35,49,50,51,52,53],DBLK=[21,22,23,25,26,27,28,30,39,40,48],EXZ=[24,29,42,47];
+function gCfgEl(pool,full){return r=>{const z=pick(r,pool);const s=ELEM[z][0];const str=cfgStr(z,!full);
+  const c=coreOf(z);const parts=cfgArr(z).filter(([o])=>!c||!cfgArr(c[0]).map(x=>x[0]).includes(o));
+  const sum=parts.reduce((a,x)=>a+x[1],0);
+  return TXT(`The ground-state configuration ${cfgH(str)} belongs to which element? Write the atomic symbol.`,
+   [{label:'Symbol',accept:[s.toLowerCase(),NAME(s).toLowerCase()],traps:[[ELEM[z-1][0].toLowerCase(),'Off by one: recount the superscripts (you got the element one to the left).'],[ELEM[z+1]?ELEM[z+1][0].toLowerCase():'~','Off by one: recount the superscripts (you got the element one to the right).']]}],
+   `<p>Neutral atom → electrons = Z. ${full?`Add every superscript: ${parts.map(x=>x[1]).join(' + ')} = <b>${z}</b>`:`${c?`[${c[1]}] = ${c[0]}, plus `:''}${parts.map(x=>x[1]).join(' + ')} = <b>${z}</b>`} → <b>${s}</b> (${NAME(s)}).</p>${EXC[z]?`<p>This is an Aufbau exception: the ${parts.find(x=>x[0][1]==='s')[0]}¹ is not a typo. ${z===24||z===42?'Half-full d⁵':'Full d¹⁰'} is more stable.</p>`:''}`,{hints:H6.cfgEl});};}
+
+function arrBoxes(n,nb,mode){const b=Array.from({length:nb},()=>'');
+  if(mode==='hund'){for(let k=0;k<n;k++){const i=Math.floor(k/2);b[i]+=k%2?'↓':'↑';}}
+  else if(mode==='anti'){for(let k=0;k<n;k++){const i=k%nb;b[i]+=(k<nb?(i===1?'↓':'↑'):'↓');}}
+  else{for(let k=0;k<n;k++){const i=k%nb;b[i]+=k<nb?'↑':'↓';}}
+  return b;}
+const pauliize=b=>{const t=[...b];const i=t.findIndex(x=>x.length===2);if(i>=0)t[i]='↑↑';return t;};
+function checkDiag(sBox,boxes,need){const all=[sBox,...boxes];const tot=all.reduce((a,x)=>a+x.length,0);
+  const pauli=all.some(x=>x==='↑↑'||x==='↓↓');
+  const pairs=boxes.some(x=>x.length===2),empty=boxes.some(x=>x.length===0);
+  const singles=boxes.filter(x=>x.length===1);const anti=singles.some(x=>x==='↑')&&singles.some(x=>x==='↓');
+  const hund=(pairs&&empty)||anti;const aufbau=sBox.length<2&&boxes.some(x=>x.length>0);
+  return {pauli,hund,aufbau,count:tot!==need};}
+function gOrb(kind){return r=>{
+  let s,n,nb,sl,pl;
+  if(kind==='d'){s=pick(r,['Ti','V','Mn','Fe','Co','Ni']);const z=SYM[s];n=z-18-2;nb=5;sl='4s';pl='3d';}
+  else{s=pick(r,kind==='p2'?['C','N','O']:['Si','P','S','Ge','As','Se']);n=VAL[s]-2;nb=3;const per=PER(s);sl=per+'s';pl=per+'p';}
+  const right=diag([ob(sl,['↑↓']),ob(pl,arrBoxes(n,nb,'normal'))]);
+  const W=[];
+  if(n>=2&&n<=nb+1)W.push([diag([ob(sl,['↑↓']),ob(pl,arrBoxes(n,nb,'hund'))]),'Hund (pairs while a box is still empty)']);
+  W.push([diag([ob(sl,['↑']),ob(pl,arrBoxes(n+1,nb,'normal'))]),'Aufbau (s not full before p/d)']);
+  W.push([diag([ob(sl,['↑↓']),ob(pl,pauliize(arrBoxes(n,nb,n>nb?'normal':'hund')))]),'Pauli (↑↑ in one box)']);
+  if(n>=2&&n<nb)W.push([diag([ob(sl,['↑↓']),ob(pl,arrBoxes(n,nb,'anti'))]),'Hund (unpaired spins must be parallel)']);
+  if(W.length<3)W.push([diag([ob(sl,['↑↓']),ob(pl,arrBoxes(n-1,nb,'normal'))]),'wrong electron count']);
+  const ws=W.slice(0,3);
+  return MC(r,`Which orbital diagram is the ground state of the valence electrons of <b>${NAME(s)}</b> (${s})? (The core is full and not shown.)`,right,ws.map(x=>x[0]),
+   `<p>${s} has ${n+2} valence electrons: ${sl}² then ${n} in ${pl}. Hund: one ↑ in each ${pl} box first, then pair.</p><p>The wrong ones break: ${ws.map(x=>x[1]).join('; ')}.</p>`,{hints:H6.orb,nw:3});};}
+
+function gTA(target){return r=>{
+  for(let t=0;t<200;t++){
+    const s=pick(r,['B','C','N','O','F','Al','Si','P','S','Cl']);const v=VAL[s],per=PER(s);
+    const sc=target==='correct'?2:pick(r,[2,1]);const delta=target==='count'?pick(r,[1,-1]):0;
+    const pe=v-sc+delta;if(pe<0||pe>6)continue;
+    let mode=target==='correct'?'normal':pick(r,['normal','hund','anti','pauli','hundpauli']);
+    let boxes=arrBoxes(pe,3,mode==='pauli'||mode==='hundpauli'?(mode==='pauli'?'normal':'hund'):mode);
+    if(mode==='pauli'||mode==='hundpauli')boxes=pauliize(boxes);
+    const sBox=sc===2?'↑↓':'↑';const v_=checkDiag(sBox,boxes,v);
+    const nv=['aufbau','pauli','hund','count'].filter(k=>v_[k]).length;
+    const ok=target==='correct'?nv===0:target==='count'?v_.count:target==='one'?nv===1&&!v_.count:target==='two'?nv===2&&!v_.count:nv===3&&!v_.count;
+    if(!ok)continue;
+    const opts=[{html:'−0: Diagram is fully correct',c:nv===0?1:0},{html:'−1: Violates Aufbau (building-up) principle',c:v_.aufbau?1:0},{html:'−1: Violates Pauli exclusion principle',c:v_.pauli?1:0},{html:'−1: Violates Hund’s rule',c:v_.hund?1:0},{html:'−1: Wrong total number of electrons',c:v_.count?1:0}];
+    const tot=sBox.length+boxes.reduce((a,x)=>a+x.length,0);
+    const why=[`Total drawn = ${tot}; ${s} has ${v} valence e⁻ → ${v_.count?'<b>wrong count</b>':'count OK'}.`,
+      v_.aufbau?`${per}s holds only 1 while ${per}p has electrons → <b>Aufbau</b>.`:`${per}s is full before ${per}p → Aufbau OK.`,
+      v_.pauli?'A box shows ↑↑ (same spin twice) → <b>Pauli</b>.':'No box has two same spins → Pauli OK.',
+      v_.hund?'p electrons pair while a box is empty, or unpaired spins point opposite ways → <b>Hund</b>.':'p boxes fill singly with parallel spins first → Hund OK.'];
+    const corr=diag([ob(per+'s',['↑↓']),ob(per+'p',arrBoxes(v-2,3,'normal'))]);
+    return MULTI(r,`A student drew the valence orbital diagram for a <b>${NAME(s)}</b> atom (core not shown). You are the TA. Which rubric items apply?`,opts,
+      `<p>${why.join(' ')}</p><p>Correct diagram: ${corr}</p>`,{visual:`<div class="diag">${ob(per+'s',[sBox])}${ob(per+'p',boxes)}</div>`,hints:H6.ta,noshuf:1});}
+  return gTA('one')(r);};}
+
+function gExc(kind){return r=>{
+  const z=kind==='cr'?pick(r,[24,42]):kind==='cu'?pick(r,[29,47]):kind==='tm'?pick(r,[22,23,25,26,27,28,30]):pick(r,[31,32,33,34,35,50,51,52]);
+  const s=ELEM[z][0];const right=cfgStr(z);const c=coreOf(z)[1];const a=cfgArr(z);
+  const ns=a.find(x=>x[0][1]==='s'&&+x[0][0]===Math.max(...a.map(y=>+y[0][0])));const d=a.find(x=>x[0][1]==='d');
+  const W=[];
+  if(EXC[z]){const t=cfgArr(z).map(x=>[...x]);const sx=t.find(x=>x[0]===ns[0]);const dx=t.find(x=>x[0][1]==='d');dx[1]-=1;sx[1]+=1;
+    W.push(`[${c}] ${sx[0]}2 ${dx[0]}${dx[1]}`);W.push(`[${c}] ${dx[0]}${dx[1]+2}`);W.push(`[${c}] ${sx[0]}1 ${sx[0][0]}p${dx[1]}`);
+    const nc=NOBLE.find(x=>x[0]>z)||NOBLE[4];W.push(`[${nc[1]}] ${sx[0]}1 ${dx[0]}${dx[1]+1}`);}
+  else if(kind==='tm'){const sN=ns[1],dN=d[1];
+    W.push(`[${c}] ${ns[0]}1 ${d[0]}${dN+1}`);W.push(`[${c}] ${d[0]}${dN+2}`);W.push(`[${c}] ${ns[0]}2 ${ns[0][0]}p${dN}`);W.push(`[${c}] ${ns[0]}2 ${d[0]}${dN-1}`);}
+  else{const p=a.find(x=>x[0][1]==='p'&&+x[0][0]===+ns[0][0]);
+    W.push(`[${c}] ${ns[0]}2 ${p[0]}${p[1]}`);W.push(`[${c}] ${ns[0]}2 ${d[0]}10 ${p[0]}${p[1]+1}`);W.push(`[${c}] ${ns[0]}2 ${d[0]}10 ${p[0]}${p[1]-1}`);
+    const nc=NOBLE.find(x=>x[0]>z);W.push(`[${nc[1]}] ${ns[0]}2 ${d[0]}10 ${p[0]}${p[1]}`);}
+  const ex=EXC[z]?`<p>${s} is in the ${z===24||z===42?'Cr':'Cu'} column: one ${ns[0]} electron moves into ${d[0]} so the d subshell is ${z===24||z===42?'exactly half full (d⁵)':'completely full (d¹⁰)'}. Aufbau alone would predict ${cfgH(W[0])}, which is the trap.</p>`
+   :kind==='tm'?`<p>Regular transition metal: fill ${ns[0]}² before ${d[0]}. Z = ${z} → [${c}] + ${z-coreOf(z)[0]} electrons = ${ns[0]}² ${d[0]}<sup>${d[1]}</sup>. Only the Cr and Cu columns move an s electron.</p>`
+   :`<p>${s} is a p-block element past the transition metals, so the filled ${d[0]}¹⁰ belongs in the configuration: [${c}] + ${z-coreOf(z)[0]} electrons.</p>`;
+  return MC(r,`What is the ground-state electron configuration of <b>${NAME(s)}</b> (Z = ${z})?`,cfgH(right),W.map(cfgH),ex,{hints:H6.exc,nw:4});};}
+
+function gVal(pool){return r=>{const z=pick(r,pool);const s=ELEM[z][0];const v=valenceMain(z);const a=cfgArr(z);
+  const hasD=a.some(x=>x[0][1]==='d');const nmax=Math.max(...a.map(x=>+x[0][0]));const pOnly=(a.find(x=>x[0]===nmax+'p')||[0,0])[1];
+  const tr=[];if(hasD)tr.push([v+10,'You counted the filled d subshell. For a main-group element the (n−1)d¹⁰ is core, not valence.']);
+  if(pOnly&&pOnly!==v)tr.push([pOnly,'You counted only the p electrons. The ns electrons in the same shell are valence too.']);tr.push([z,'That is the total electron count (Z), not the valence count.']);
+  return NUM(`How many <b>valence</b> electrons does the configuration ${cfgH(cfgStr(z))} have?`,[{label:'Valence e⁻',ans:v,abs:0,traps:tr}],
+   `<p>Main-group element → valence = electrons in the highest shell, n = ${nmax}: ${a.filter(x=>+x[0][0]===nmax).map(x=>x[0]+'<sup>'+x[1]+'</sup>').join(' + ')} = <b>${v}</b>.${hasD?' The full d¹⁰ is core.':''} Check: ${s} is Group ${AGROUP(s)}A.</p>`,{hints:H6.val});};}
+
+const TMI=[['Fe',2],['Fe',3],['Co',2],['Co',3],['Mn',2],['Cr',3],['Ni',2],['V',3],['Ti',2],['Cu',2],['V',2]],D10I=[['Zn',2],['Cu',1],['Ag',1],['Ga',3]],MGI=[['Al',3],['S',-2],['Cl',-1],['Ca',2],['O',-2],['N',-3],['Mg',2],['K',1]];
+const ionLabel=(s,q)=>`${s}${chg(q)}`;
+const magTxt=u=>u?`paramagnetic, ${u} unpaired e⁻`:'diamagnetic';
+function gIon(pool){return r=>{const [s,q]=pick(r,pool);const z=SYM[s];const a=ionArr(z,q);const u=unpairedArr(a);const right=`${cfgH(ionStr(z,q))}, ${magTxt(u)}`;
+  const W=[];
+  if(q>0&&GRP(s)>=3&&GRP(s)<=12){/* keep s, remove from d */const t=cfgArr(z).map(x=>[...x]);const d=t.filter(x=>x[0][1]==='d').pop();d[1]-=q;const st=`[${coreOf(z)[1]}] `+t.filter(x=>!cfgArr(coreOf(z)[0]).map(y=>y[0]).includes(x[0])).filter(x=>x[1]>0).map(x=>x[0]+x[1]).join(' ');W.push(`${cfgH(st)}, ${magTxt(unpairedArr(t.filter(x=>x[1]>0)))}`);}
+  W.push(`${cfgH(ionStr(z,q))}, ${magTxt(u?(u+2>5?u-2||1:u+2):2)}`);
+  W.push(`${cfgH(ionStr(z,q))}, ${u?'diamagnetic':'paramagnetic, 1 unpaired e⁻'}`);
+  W.push(`${cfgH(cfgStr(z))}, ${magTxt(unpairedArr(cfgArr(z)))}`);
+  if(q<0){const t=ionArr(z,-q);W.push(`${cfgH(t.map(x=>x[0]+x[1]).join(' '))}, ${magTxt(unpairedArr(t))}`);}
+  const ex=q>0&&GRP(s)>=3&&GRP(s)<=12?`<p>Transition metals lose their <b>${PER(s)}s electrons first</b>, then d: ${s} ${cfgH(cfgStr(z))} → ${ionLabel(s,q)} ${cfgH(ionStr(z,q))}.</p><p>Fill the d boxes one ↑ each, then pair → <b>${u} unpaired</b> → ${u?'paramagnetic':'diamagnetic'}.</p>`
+   :`<p>${q>0?`${s} loses ${q} electron${q>1?'s':''} from its outer shell`:`${s} gains ${-q} electron${q<-1?'s':''}`} → ${ionLabel(s,q)} ${cfgH(ionStr(z,q))}${u?'':', all electrons paired → <b>diamagnetic</b>'}.${u?` <b>${u} unpaired</b> → paramagnetic.`:''}</p>`;
+  return MC(r,`Which correctly describes the <b>${ionLabel(s,q)}</b> ion (${s}: Z = ${z})?`,right,W,ex,{hints:H6.ion,nw:4});};}
+
+function gExcited(r){
+  const zs=sample(r,[5,6,7,8,9,11,12,13,14,15,16,17,19,20,22,26,30,31,33,35],5);const exz=zs[0];
+  const a=cfgArr(exz).map(x=>[...x]);const c=coreOf(exz);
+  let ex;const last=a[a.length-1];
+  if(last[0][1]==='p'&&a[a.length-2][0][1]==='s'&&+a[a.length-2][0][0]===+last[0][0]&&last[1]<6){const s=a[a.length-2];s[1]-=1;last[1]+=1;ex=a;}
+  else{last[1]-=1;const nxt=ORDER[ORDER.indexOf(last[0])+1];a.push([nxt,1]);ex=a.filter(x=>x[1]>0);}
+  const core=c?cfgArr(c[0]).map(x=>x[0]):[];const str=(c?`[${c[1]}] `:'')+ex.filter(x=>!core.includes(x[0])).map(x=>x[0]+x[1]).join(' ');
+  const grounds=zs.slice(1,4).map(z=>cfgH(cfgStr(z)));grounds.push(cfgH(cfgStr(pick(r,[24,29]))));
+  return MC(r,'Which configuration represents an <b>excited state</b>?',cfgH(str),grounds,`<p>${cfgH(str)} has an electron in a higher orbital while a lower one still has room. The ground state of that atom (${ELEM[exz][0]}) is ${cfgH(cfgStr(exz))}.</p><p>[Ar] 4s¹ 3d⁵ (Cr) and [Ar] 4s¹ 3d¹⁰ (Cu) look odd, but they are real <b>ground states</b> (exceptions).</p>`,{hints:H6.exs,nw:4});}
+
+function gNL(pool,tm){return r=>{const [s,q]=pick(r,pool);const z=SYM[s];const a=ionArr(z,q);
+  let o;if(tm){o=a.filter(x=>x[0][1]==='d').pop();}else{const nmax=Math.max(...a.map(x=>+x[0][0]));const t=a.filter(x=>+x[0][0]===nmax);o=t.find(x=>x[0][1]==='p')||t[t.length-1];}
+  const n=+o[0][0],l={s:0,p:1,d:2}[o[0][1]];const L=(n,l)=>`n = ${n}, ℓ = ${l}`;
+  const na=cfgArr(z);const no=na[na.length-1];const W=[L(+no[0][0],{s:0,p:1,d:2}[no[0][1]]),L(n+1,l),L(n,l===0?1:l-1),L(n,l===2?1:l+1),L(n-1,l)];
+  return MC(r,`What are the n and ℓ quantum numbers of the ${tm?'highest-energy (last remaining d)':'outermost'} electrons in a <b>${ionLabel(s,q)}</b> ion?`,L(n,l),W,
+   `<p>${ionLabel(s,q)}: ${cfgH(ionStr(z,q))}${q>0?` (${s} lost ${q} electron${q>1?'s':''}${tm?', the 4s ones first':''})`:''}. ${tm?'The last d electrons':'Outermost'} = ${o[0]} → <b>n = ${n}, ℓ = ${l}</b> (s = 0, p = 1, d = 2).</p>`,{hints:H6.nl,nw:4});};}
+
+/* chains: a < b when a is up-and/or-right of b (radius sense) */
+const upRight=(a,b)=>PER(a)<=PER(b)&&AGROUP(a)>=AGROUP(b)&&!(PER(a)===PER(b)&&AGROUP(a)===AGROUP(b));
+const RAD=s=>el(s)[4],IE1=s=>el(s)[5][0];
+function chainSet(r,mode,valid){for(let t=0;t<400;t++){let set;
+  if(mode==='period'){const p=pick(r,[2,3,4,5]);set=sample(r,MAIN.filter(x=>PER(x)===p),4);}
+  else if(mode==='group'){const g=pick(r,[1,2,4,5,6,7]);set=MAIN.filter(x=>AGROUP(x)===g);if(set.length<3)continue;set=sample(r,set,Math.min(4,set.length));}
+  else set=sample(r,MAIN,4);
+  if(set.length<3)continue;
+  const ok=set.every((a,i)=>set.every((b,j)=>i===j||upRight(a,b)||upRight(b,a)));if(!ok)continue;
+  if(mode==='mixed'&&(uniq(set.map(PER)).length<2||uniq(set.map(AGROUP)).length<2))continue;
+  if(valid&&!valid(set))continue;return set;}return null;}
+function gRad(mode){return r=>{const set=chainSet(r,mode,s=>s.every((a,i)=>s.every((b,j)=>i===j||(upRight(a,b)?RAD(a)<RAD(b):RAD(a)>RAD(b)))));
+  const dir=pick(r,['increasing','decreasing']);
+  return rankQ(r,set,RAD,x=>x,dir,`Rank in order of <b>${dir}</b> atomic radius: ${shuf(r,set).join(', ')}.`,
+   `<p>Radius shrinks left → right (more protons, same shell, higher Z<sub>eff</sub>) and grows down a group (more shells).</p><p>Positions: ${set.map(x=>`${x} (period ${PER(x)}, ${AGROUP(x)}A)`).join(', ')}. Approximate radii: ${[...set].sort((a,b)=>RAD(a)-RAD(b)).map(x=>`${x} ${RAD(x)} pm`).join(', ')}.</p>`,{hints:H6.rad});};}
+function gIE(mode){return r=>{let set;
+  if(mode==='period'){for(let t=0;t<300;t++){const p=pick(r,[2,3]);set=sample(r,MAIN.filter(x=>PER(x)===p),4);const g=set.map(AGROUP);if((g.includes(2)&&g.includes(3))||(g.includes(5)&&g.includes(6)))break;}}
+  else set=chainSet(r,mode,s=>s.every((a,i)=>s.every((b,j)=>i===j||(upRight(a,b)?IE1(a)>IE1(b):IE1(a)<IE1(b)))));
+  const dir=pick(r,['increasing','decreasing']);const g=set.map(AGROUP);
+  const exn=[];if(g.includes(2)&&g.includes(3))exn.push('<b>2A > 3A</b> (the 3A element’s lone p electron is easier to remove than one from the full s)');if(g.includes(5)&&g.includes(6))exn.push('<b>5A > 6A</b> (the 6A element loses a paired electron and becomes half-full)');
+  return rankQ(r,set,IE1,x=>x,dir,`Rank in order of <b>${dir}</b> first ionization energy: ${shuf(r,set).join(', ')}.`,
+   `<p>IE₁ rises left → right and falls down a group.${exn.length?` Exceptions in play: ${exn.join('; ')}.`:''}</p><p>Real values (kJ/mol): ${[...set].sort((a,b)=>IE1(a)-IE1(b)).map(x=>`${x} ${IE1(x)}`).join(', ')}.</p>`,{hints:H6.ie});};}
+function gSIE(vals){return r=>{const s=pick(r,['Li','Be','B','C','Na','Mg','Al','Si','P'].filter(x=>vals.includes(VAL[x])));const v=VAL[s];const ies=el(s)[5].slice(0,v+2);
+  const nb=['Li','Be','B','C','N','O','F','Na','Mg','Al','Si','P','S','Cl'].filter(x=>PER(x)===PER(s));
+  const tr=nb.filter(x=>Math.abs(VAL[x]-v)===1).map(x=>[x.toLowerCase(),`Close: ${x} has ${VAL[x]} valence electrons. Count the IEs <b>before</b> the jump: the jump is the first core electron.`]);
+  return TXT(`A <b>period-${PER(s)}</b> element has these ionization energies (kJ/mol): ${ies.map((x,i)=>`IE${'₁₂₃₄₅₆₇₈'[i]} ${x.toLocaleString('en-US').replace(/,/g,' ')}`).join(', ')}. Which element is it? Write the symbol.`,
+   [{label:'Symbol',accept:[s.toLowerCase(),NAME(s).toLowerCase()],traps:tr}],
+   `<p>The huge jump comes <b>after IE${'₁₂₃₄₅₆₇₈'[v-1]}</b> (${ies[v-1]} → ${ies[v]}), so the atom has ${v} valence electron${v>1?'s':''}; the next one comes from the core. Period ${PER(s)} + ${v} valence electrons = <b>${s}</b>.</p>`,{hints:H6.sie});};}
+const ISO={10:[['N',-3],['O',-2],['F',-1],['Na',1],['Mg',2],['Al',3]],18:[['P',-3],['S',-2],['Cl',-1],['K',1],['Ca',2]],36:[['Se',-2],['Br',-1],['Rb',1],['Sr',2]]};
+function gIso(kind){return r=>{
+  if(kind==='charge'){const [s]=pick(r,[['Fe'],['Co'],['Cu'],['Sn'],['Mn']]);const qs=s==='Sn'?[0,2,4]:s==='Cu'?[0,1,2]:[0,2,3];const items=qs.map(q=>({s,q}));
+    const dir=pick(r,['increasing','decreasing']);
+    return rankQ(r,items,x=>-x.q,x=>x.q?ionLabel(x.s,x.q):x.s,dir,`Rank in order of <b>${dir}</b> size: ${shuf(r,items).map(x=>x.q?ionLabel(x.s,x.q):x.s).join(', ')}.`,
+     `<p>Same nucleus, fewer electrons → less repulsion and the remaining electrons are pulled in tighter. So the neutral atom is largest and the highest charge is smallest.</p>`,{hints:H6.iso});}
+  const n=pick(r,[10,18,36]);const items=sample(r,ISO[n],4).map(([s,q])=>({s,q,z:SYM[s]}));const dir=pick(r,['increasing','decreasing']);
+  return rankQ(r,items,x=>-x.z,x=>ionLabel(x.s,x.q),dir,`Rank in order of <b>${dir}</b> size: ${shuf(r,items).map(x=>ionLabel(x.s,x.q)).join(', ')}.`,
+   `<p>All have ${n} electrons (isoelectronic). Same electrons, more protons → pulled in tighter. Z: ${[...items].sort((a,b)=>a.z-b.z).map(x=>`${x.s} ${x.z}`).join(' < ')}, so ${(m=>ionLabel(m.s,m.q))([...items].sort((a,b)=>a.z-b.z)[0])} is biggest.</p>`,{hints:H6.iso});};}
+function gEA(kind){return r=>{const per=pick(r,[2,3]);
+  if(kind==='5A'){const set=per===2?['C','N','O','F']:['Si','P','S','Cl'];const ans=per===2?'N':'P';
+    return MC(r,'Which element has a <b>less favorable</b> (less negative) electron affinity than the general trend predicts, because the added electron must pair with another in a half-filled p subshell?',ans,set,`<p>${ans} is ${per}p³, half-full. An added electron has to pair up, which costs repulsion energy, so Group 5A has a lower EA than expected.</p>`,{hints:H6.ea});}
+  if(kind==='2A'){const set=per===2?['Li','Be','B','C']:['Na','Mg','Al','Si'];const ans=per===2?'Be':'Mg';
+    return MC(r,'Which element has an unusually unfavorable electron affinity because the added electron must go into a <b>higher-energy p sublevel</b>?',ans,set,`<p>${ans} is ${per}s², a full s sublevel. The added electron has to start the ${per}p sublevel, which is higher in energy, so Group 2A has a low (unfavorable) EA.</p>`,{hints:H6.ea});}
+  return MC(r,'Which group generally has the <b>most negative</b> (most favorable) electron affinities?','Group 7A (halogens)',['Group 1A (alkali metals)','Group 2A (alkaline earth metals)','Group 8A (noble gases)','Group 5A'],`<p>Halogens are one electron short of a noble-gas configuration, so adding an electron releases the most energy. Noble gases would need to start a new shell, so their EA is unfavorable.</p>`,{hints:H6.ea});};}
+const OXA=['SO3','SO2','CO2','P4O10','N2O5','Cl2O7'],OXB=['Na2O','K2O','CaO','MgO','BaO','Li2O'],OXM=['Al2O3','ZnO','BeO'];
+function gOx(kind){return r=>{const pools={acid:[OXA,'forms an <b>acidic</b> solution in water','Nonmetal oxides (covalent) react with water to make acids.'],base:[OXB,'forms a <b>basic</b> solution in water','Metal oxides (ionic) react with water to make hydroxides (bases).'],amph:[OXM,'is <b>amphoteric</b> (reacts with both acids and bases)','Al₂O₃, ZnO and BeO sit near the metal/nonmetal boundary and can act as either.']};
+  const [P,txt,why]=pools[kind];const right=pick(r,P);const others=[...OXA,...OXB,...OXM].filter(x=>!P.includes(x));
+  return MC(r,`Which oxide ${txt}?`,F(right),sample(r,others,4).map(F),`<p>${why} Metallic character increases down and to the left, so oxides there are more basic.</p>`,{hints:H6.ox});};}
+const SHQ=[
+ ['In a hydrogen atom, the 2s and 2p orbitals have the same energy. Why is 2s <b>lower</b> in energy than 2p in a multi-electron atom such as Li?','2s electrons penetrate closer to the nucleus, so they are less shielded and feel a higher effective nuclear charge',['2s orbitals are larger than 2p orbitals','2p electrons are closer to the nucleus and are repelled by it','Hund’s rule forces 2p electrons into higher energy','They are still degenerate; 2s just fills first by convention'],'Penetration: the 2s radial distribution has a lobe inside the 1s cloud, so it is shielded less.'],
+ ['Why do all the n = 2 sublevels (2s and 2p) have the <b>same</b> energy in a hydrogen atom?','H has only one electron, so there is no electron–electron repulsion or shielding to split the sublevels',['2s and 2p have the same shape','Hund’s rule makes them equal','The nucleus of H has no charge','They are not equal; 2s is always lower'],'One-electron systems: energy depends only on n. Splitting needs other electrons.'],
+ ['Going across period 3 from Na to Cl, the effective nuclear charge felt by the valence electrons:','increases, because protons are added while the core shielding stays about the same',['decreases, because more electrons shield each other','stays the same, because the shell is the same','increases, because a new shell is added each time','decreases, because the atoms get smaller'],'Same core ([Ne]) in the whole period; Z goes up by 1 each step → Z<sub>eff</sub> rises.'],
+ ['Which electrons shield the valence electrons of an atom <b>most effectively</b>?','Core (inner-shell) electrons',['Other valence electrons in the same shell','Electrons in higher, empty orbitals','Protons in the nucleus','Neutrons in the nucleus'],'Inner electrons sit between the nucleus and the valence electrons; electrons in the same shell shield poorly.'],
+ ['Why does 4s fill <b>before</b> 3d in K and Ca?','In these atoms 4s penetrates closer to the nucleus and is lower in energy than 3d',['3d orbitals are full in K and Ca','4s has a smaller n than 3d','Hund’s rule forbids d electrons before s','3d orbitals do not exist until Sc'],'Penetration lowers 4s below 3d for the early period-4 atoms, so it fills first. (It is also emptied first in cations.)']];
+const gSh=k=>r=>{const [p,a,w,why]=SHQ[k];return MC(r,p,a,w,`<p>${why}</p>`,{hints:H6.sh});};
+function gPos(kind){return r=>{
+  if(kind==='region'){const R={metalloid:['B','Si','Ge','As','Sb','Te'],metal:['Na','Mg','Al','Ca','K','Sn','Fe','Ba'],nonmetal:['C','N','O','F','P','S','Cl','Se','Br','I']};const want=pick(r,['metalloid','metal','nonmetal']);
+    const right=pick(r,R[want]);const others=Object.entries(R).filter(([k])=>k!==want).flatMap(([,v])=>v);
+    return MC(r,`Which element is a <b>${want}</b>?`,right,sample(r,others,3),`<p>${right} ${want==='metalloid'?'sits on the staircase line between metals and nonmetals':want==='metal'?'is left of the staircase line (metals: shiny, conduct, lose electrons)':'is right of the staircase line (nonmetals: brittle, poor conductors, gain electrons)'}.</p>`,{hints:H6.pos});}
+  const z=pick(r,kind==='s'?SBLK:kind==='p'?[...PB23,...PB45]:[21,22,23,25,26,27,28,30,39,40]);const s=ELEM[z][0];const g=GRP(s),p=PER(s);
+  const a=cfgArr(z);const c=coreOf(z);const core=cfgArr(c[0]).map(x=>x[0]);const vs=a.filter(x=>!core.includes(x[0])&&!(kind==='p'&&x[0][1]==='d'));
+  const blk=kind;const lab=(g,p,b)=>`Group ${g}${g<=2||g>=13?` (${g<=2?g:g-10}A)`:''}, period ${p}, ${b}-block`;
+  const right=lab(g,p,blk);const W=[lab(g,p+1,blk),lab(g===18?17:g+1,p,blk),lab(g,p-1>0?p-1:p+2,blk),kind==='p'?lab(g-10,p,'d'):lab(g+1,p+1,blk)];
+  return MC(r,`An element's valence configuration is ${cfgH(vs.map(x=>x[0]+x[1]).join(' '))}${kind==='p'&&PER(s)>=4?' (with a filled d subshell underneath)':''}. Where is it on the periodic table?`,right,W,
+   `<p>Highest n = ${p} → <b>period ${p}</b>. Last subshell filled is ${kind} → <b>${kind}-block</b>. ${kind==='p'?`s + p = ${vs.reduce((a,x)=>a+x[1],0)} valence electrons → Group ${g-10}A (${g}).`:kind==='s'?`${vs[0][1]} s electron${vs[0][1]>1?'s':''} → Group ${g}.`:`s + d = ${vs.reduce((a,x)=>a+x[1],0)} → Group ${g}.`} It is ${s}.</p>`,{hints:H6.pos});};}
+function gTrend(kind){return r=>{
+  if(kind==='zeff'){const p=pick(r,[2,3]);const set=sample(r,MAIN.filter(x=>PER(x)===p),4);const dir=pick(r,['increasing','decreasing']);
+    return rankQ(r,set,AGROUP,x=>x,dir,`Rank in order of <b>${dir}</b> effective nuclear charge felt by the valence electrons: ${shuf(r,set).join(', ')}.`,`<p>Same period → same core shielding; each step right adds a proton, so Z<sub>eff</sub> rises left → right.</p>`,{hints:H6.tr});}
+  const set=chainSet(r,'mixed',kind==='en'?s=>s.every((a,i)=>s.every((b,j)=>i===j||(upRight(a,b)?EN[a]>EN[b]:EN[a]<EN[b]))):null);
+  const dir=pick(r,['increasing','decreasing']);const key=kind==='en'?(x=>EN[x]):(x=>PER(x)*10-AGROUP(x));
+  return rankQ(r,set,key,x=>x,dir,`Rank in order of <b>${dir}</b> ${kind==='en'?'electronegativity':'metallic character'}: ${shuf(r,set).join(', ')}.`,
+   kind==='en'?`<p>EN rises toward the upper right (F is highest). Values: ${[...set].sort((a,b)=>EN[a]-EN[b]).map(x=>`${x} ${EN[x].toFixed(1)}`).join(', ')}.</p>`:`<p>Metallic character (ease of losing electrons) rises toward the lower left, opposite to IE and EN. Positions: ${set.map(x=>`${x} (period ${PER(x)}, ${AGROUP(x)}A)`).join(', ')}.</p>`,{hints:H6.tr});};}
+
+/* ================== CHAPTER 7 ================== */
+const H7={
+ lew:['Lewis symbol: one dot per side first, then pair. Unpaired dots = bonds the atom usually forms.','Count valence e⁻ (group A number). Ions: add e⁻ for − charge, remove for +.'],
+ ionf:['Metal + nonmetal → ions. Charges come from the group: 1A +1, 2A +2, 3A +3; 5A −3, 6A −2, 7A −1.','Cross the charges so the totals cancel; electrons transferred = total positive charge.'],
+ btype:['Metal + nonmetal → ionic; nonmetal + nonmetal → covalent; metal + metal → metallic.','Classify each element in the formula as metal or nonmetal.'],
+ lat:['Lattice energy ∝ (q₁ × q₂) / r. Charge product matters most; then ion size.','Compare charge products first; for equal charges, smaller ions → higher lattice energy (and higher melting point).'],
+ coul:['“Force between two ions” → F = k q₁q₂ / r². “Energy” → E = k q₁q₂ / r (r not squared).','q = charge number × 1.602 × 10⁻¹⁹ C; r must be in meters (1 pm = 10⁻¹² m).'],
+ bh:['Born–Haber: the steps around the cycle add up to ΔH<sub>f</sub>°.','ΔH<sub>f</sub> = ΔH<sub>sub</sub> + IE(s) + BE share + EA(s) − U. Rearrange for the unknown; ½BE for one halogen atom, full BE for two.'],
+ form:['Predict a formula from valence: H, F, Cl 1; O, S 2; N, P 3; C, Si 4.','The central atom (higher valence) gets enough partners to use all its bonds.'],
+ vc:['Total valence electrons = sum of group numbers, then +1 per negative charge, −1 per positive charge.','Multiply each element’s valence e⁻ by how many atoms there are.'],
+ bl:['Same two atoms: higher bond order → shorter and stronger.','Triple < double < single for length; the reverse for energy.'],
+ den:['ΔEN = |EN₁ − EN₂| with your cheat-sheet table; ≤ 0.4 nonpolar, 0.5–1.7 polar, ≥ 1.8 ionic.','Look up both values, subtract, compare to the cutoffs.'],
+ oct:['Octet exceptions: B and Be (too few), odd electron totals (radicals), period 3+ centers with more than 4 bonds or extra lone pairs (expanded).','Count total valence e⁻: odd → radical. Then check the central atom.'],
+ lp:['Lone pairs on the center = (center’s valence e⁻ − charge adjustment − electrons used in bonds to it) ÷ 2.','Fast way: (total valence e⁻ − 8 per outer non-H atom − 2 per H) ÷ 2.'],
+ fc:['Formal charge = V − N − B (valence e⁻ − nonbonding e⁻ − bond lines).','N counts every dot (a pair = 2); B counts lines (double = 2).'],
+ best:['Best resonance structure: smallest formal charges; a negative charge on the more electronegative atom.','Compute FC for every atom in each structure, then apply the rules in order.'],
+ bo:['Resonance bond order = total bond lines between those atoms ÷ number of those links.','Draw one structure, count the bonds shared over the equivalent positions.'],
+ shape:['VSEPR: EGs = atoms bonded + lone pairs on the center. Shape names only the atoms.','Find X (atoms) and E (lone pairs) on the center, then AXₘEₙ → shape.'],
+ eg:['Electron geometry counts all groups; molecular shape ignores lone pairs.','Same when E = 0; different when the center has lone pairs.'],
+ ang:['Bond angle belongs to the middle atom: count its electron groups.','2 EGs 180°, 3 EGs 120°, 4 EGs 109.5°, 6 EGs 90° (ideal).'],
+ pol:['Polar molecule = polar bonds that do not cancel.','Lone pair on the center (except AX₂E₃, AX₄E₂) or different outer atoms → polar.'],
+ sp:['σ: every bond has exactly one. π: double has 1, triple has 2.','Write out each bond (include C–H), count them all for σ.'],
+ hyb:['Hybridization = number of electron groups on the atom.','2 sp, 3 sp², 4 sp³, 5 sp³d, 6 sp³d². Double/triple bonds count as one group.'],
+ ov:['σ bonds use hybrids (H uses 1s); π bonds use unhybridized p orbitals side by side.','Find each atom’s hybridization from its electron groups first.'],
+ mo:['MO bond order = (bonding e⁻ − antibonding e⁻) ÷ 2. Any unpaired e⁻ → paramagnetic.','Count valence e⁻ (adjust for charge), fill the MO diagram (π below σ₂ₚ for B₂, C₂, N₂).']};
+
+function gLew(kind){return r=>{
+  if(kind==='atom'){const s=pick(r,['Li','Be','B','C','N','O','F','Na','Mg','Al','Si','P','S','Cl','K','Ca','Br','I','Se','As']);const v=VAL[s];const u=v<=4?v:8-v;
+    const unp=['Li','Be','B','C','N','O','F'].map(x=>x);return NUM(`How many <b>unpaired</b> dots are in the Lewis symbol of ${s}?`,[{label:'Unpaired dots',ans:u,abs:0,traps:u!==v?[[v,'That is the total number of valence dots. Place one per side first, then pair: only the singles are unpaired.']]:[]}],
+      `<p>${s} has ${v} valence electron${v>1?'s':''}. One dot per side first${v>4?`, then ${v-4} pair${v-4>1?'s':''} up`:''} → <b>${u} unpaired</b>. (Unpaired dots ≈ bonds it usually forms.)</p>`,{hints:H7.lew});}
+  const [s,q]=pick(r,[['Na',1],['Cl',-1],['O',-2],['Mg',2],['N',-3],['Al',3],['S',-2],['K',1],['F',-1],['Ca',2]]);const n=q>0?0:8;
+  return NUM(`How many dots appear in the Lewis symbol of the ${ionLabel(s,q)} ion?`,[{label:'Dots',ans:n,abs:0,traps:[[VAL[s],'That is the neutral atom. Remove electrons for a + charge, add for a − charge.']]}],
+   `<p>${s} has ${VAL[s]} valence e⁻; ${q>0?`it loses ${q} → <b>0</b> dots (written ${ionLabel(s,q)} with no dots)`:`it gains ${-q} → <b>8</b> dots in brackets with the charge`}.</p>`,{hints:H7.lew});};}
+const IONC=[['Al','O'],['Mg','N'],['Ca','Cl'],['Na','S'],['K','N'],['Ba','O'],['Al','Cl'],['Li','N'],['Mg','Cl'],['Ca','N'],['Al','S'],['Sr','F']];
+const ionQ=s=>AGROUP(s)<=3?AGROUP(s):AGROUP(s)-8;
+function ionFormula(m,x){const qm=ionQ(m),qx=-ionQ(x);const g=(a,b)=>b?g(b,a%b):a;const k=g(qm,qx);const nm=qx/k,nx=qm/k;return {f:`${m}${nm>1?nm:''}${x}${nx>1?nx:''}`,nm,nx,qm,qx};}
+function gIonF(kind){return r=>{const [m,x]=pick(r,IONC);const I=ionFormula(m,x);
+  if(kind==='formula'){const W=[`${m}${x}`,`${m}${I.qx>1?I.qx:''}${x}`,`${m}${x}${I.qm>1?I.qm:''}`,`${m}${I.nx>1?I.nx:''}${x}${I.nm>1?I.nm:''}`,`${m}2${x}3`];
+    return MC(r,`What is the formula of the ionic compound formed by ${NAME(m).toLowerCase()} and ${NAME(x).toLowerCase()}?`,F(I.f),uniq(W).filter(w=>w!==I.f).map(F),
+     `<p>${m} (Group ${AGROUP(m)}A) → ${ionLabel(m,I.qm)}; ${x} (Group ${AGROUP(x)}A) → ${ionLabel(x,-I.qx)}. Balance the charges: ${I.nm} × (+${I.qm}) = ${I.nx} × (−${I.qx}) → <b>${F(I.f)}</b>.</p>`,{hints:H7.ionf});}
+  const e=I.nm*I.qm;return NUM(`When ${F(I.f)} forms from its elements, how many electrons are transferred <b>per formula unit</b>?`,[{label:'Electrons',ans:e,abs:0,traps:[[I.qm,`That is the charge of one ${m} ion. There are ${I.nm} of them.`],[I.qx,`That is the charge of one ${x} ion. Count the total transferred.`]].filter(t=>t[0]!==e)}],
+   `<p>${I.nm} ${m} atom${I.nm>1?'s':''} each lose ${I.qm} → <b>${e}</b> electrons, and ${I.nx} ${x} atom${I.nx>1?'s':''} each gain ${I.qx} → ${I.nx*I.qx}. Lost = gained ✓.</p>`,{hints:H7.ionf});};}
+const BTY={ionic:['NaCl','MgO','CaF2','K2S','Li2O','AlCl3? '].filter(x=>!x.includes('?')),covalent:['CO2','H2O','NH3','PCl3','CH4','SO2','HCl'],metallic:['Cu','Fe','Al','Na','an alloy of Cu and Zn (brass)']};
+function gBType(kind){return r=>{const sub_=pick(r,BTY[kind]);const lab=sub_.includes(' ')?sub_:F(sub_);
+  return MC(r,`What type of bonding holds ${lab} together?`,kind==='ionic'?'ionic':kind==='covalent'?'covalent':'metallic',['ionic','covalent','metallic','hydrogen bonding'],
+   `<p>${kind==='ionic'?'A metal with a nonmetal → electrons transfer → <b>ionic</b>.':kind==='covalent'?'Only nonmetals → electrons are shared → <b>covalent</b>.':'Metal atoms only → a sea of shared, delocalized electrons → <b>metallic</b>.'} (Hydrogen bonding is an IMF between molecules, not a bond type inside a substance.)</p>`,{hints:H7.btype,nw:3});};}
+const latF=k=>F(k);
+function gLat(kind,want){return r=>{let set;const keys=Object.keys(LAT).filter(k=>k!=='Al2O3');
+  for(let t=0;t<500;t++){set=sample(r,keys,3);const qp=set.map(k=>LATQ[k][0]*LATQ[k][1]);
+    const vals=set.map(k=>LAT[k]);const sorted=[...vals].sort((a,b)=>a-b);if(sorted[1]/sorted[0]<1.04||sorted[2]/sorted[1]<1.04)continue;
+    if(kind==='any')break;if(kind==='charge'&&uniq(qp).length===3)break;if(kind==='size'&&uniq(qp).length===1)break;if(kind==='both'&&uniq(qp).length===2)break;}
+  if(want){const dir=want;const val=k=>LAT[k];const s=[...set].sort((a,b)=>val(b)-val(a));const right=dir==='high'?s[0]:s[s.length-1];
+    const extra=sample(r,keys.filter(k=>!set.includes(k)&&(dir==='high'?LAT[k]<LAT[s[0]]:LAT[k]>LAT[s[s.length-1]])),1);
+    const opts=[...set,...extra];
+    return MC(r,`Which ionic compound has the <b>${dir==='high'?'highest':'lowest'}</b> melting point?`,F(right),opts.filter(x=>x!==right).map(F),
+     `<p>Melting point follows lattice energy. Charge products: ${opts.map(k=>`${F(k)} ${LATQ[k][0]}×${LATQ[k][1]}`).join(', ')}. Lattice energies (kJ/mol): ${opts.map(k=>`${F(k)} ${LAT[k]}`).join(', ')}.</p>`,{hints:H7.lat});}
+  const dir=pick(r,['increasing','decreasing']);
+  return rankQ(r,set,k=>LAT[k],latF,dir,`Rank in order of <b>${dir}</b> lattice energy: ${shuf(r,set).map(F).join(', ')}.`,
+   `<p>Charge product first: ${set.map(k=>`${F(k)} ${LATQ[k][0]} × ${LATQ[k][1]} = ${LATQ[k][0]*LATQ[k][1]}`).join('; ')}. ${kind!=='charge'?'For equal charge products, smaller ions (higher in their groups) → shorter distance → higher lattice energy. ':''}Real values (kJ/mol): ${[...set].sort((a,b)=>LAT[a]-LAT[b]).map(k=>`${F(k)} ${LAT[k]}`).join(' < ')}.</p>`,{hints:H7.lat});};}
+
+const KE=8.99e9,QE=1.602e-19;
+function gCoul(kind){return r=>{
+  const pool=kind==='f1'?IONPAIRS.filter(p=>p[1]===1&&p[3]===1):IONPAIRS.filter(p=>p[1]*p[3]>1);const [m,qm,x,qx,d0]=pick(kind==='E'?r:r,kind==='E'?IONPAIRS:pool);
+  const d=Math.round(d0*(0.9+0.2*r()));const q1=qm*QE,q2=qx*QE,rm=d*1e-12;const isF=kind!=='E';
+  const ans=isF?KE*q1*q2/rm**2:KE*q1*q2/rm;
+  const tr=[[isF?KE*QE*QE/rm**2:KE*QE*QE/rm,'You used 1.602 × 10⁻¹⁹ C for both ions. Multiply by each ion’s charge number.'],
+    [isF?KE*q1*q2/d**2:KE*q1*q2/d,'You plugged r in pm. Convert first: 1 pm = 10⁻¹² m.'],
+    [isF?KE*q1*q2/rm:KE*q1*q2/rm**2,isF?'You forgot to square r. Force uses r².':'You squared r. Energy uses r, not r² (that is the force formula).'],
+    [isF?KE*q1*q2/(d*1e-9)**2:KE*q1*q2/(d*1e-9),'Wrong conversion: pm → m is 10⁻¹², not 10⁻⁹.']].filter(t=>t[0]!==qm*qx||1);
+  if(qm!==qx)tr.push([isF?KE*q1*q1/rm**2:KE*q1*q1/rm,'Each ion keeps its own charge: q₁ and q₂ are different here.']);
+  return NUM(`Calculate the electrostatic <b>${isF?'force':'potential energy'}</b> between a ${ionLabel(m,qm)} ion and a ${ionLabel(x,-qx)} ion whose centers are <b>${d} pm</b> apart. Use k<sub>e</sub> = 8.99 × 10⁹ N·m²/C² and e = 1.602 × 10⁻¹⁹ C. Give the magnitude in ${isF?'newtons':'joules'}.`,
+   [{label:isF?'F (N)':'E (J)',ans,rel:0.03,traps:tr}],
+   `<p>q₁ = ${qm} × 1.602 × 10⁻¹⁹ = ${fx(q1,3)} C; q₂ = ${qx} × 1.602 × 10⁻¹⁹ = ${fx(q2,3)} C. r = ${d} × 10⁻¹² = ${fx(rm,2)} m.</p><p>${isF?'F':'E'} = (8.99 × 10⁹)(${fx(q1,3)})(${fx(q2,3)}) ÷ (${fx(rm,2)})${isF?'²':''} = <b>${fx(ans,2)} ${isF?'N':'J'}</b>.</p>`,{hints:H7.coul,hint:'Type scientific notation as 2.5e-8 or 2.5x10^-8.'});};}
+
+function gBH(kind){return r=>{let m,x,n;
+  if(kind==='mx2'){[m,x]=pick(r,[['Mg','Cl'],['Ca','Cl'],['Sr','Cl'],['Ba','Cl'],['Mg','F'],['Ca','F']]);n=2;}else{m=pick(r,['Li','Na','K','Rb','Cs']);x=pick(r,['F','Cl']);n=1;}
+  const f=`${m}${x}${n>1?n:''}`;const sb=SUBL[m],[i1,i2]=IE12[m],be=BEX[x],ea=EAX[x],hf=HF[f];
+  const beUse=n===1?be/2:be,ieUse=n===1?i1:i1+i2,eaUse=n*ea;const U=sb+ieUse+beUse+eaUse-hf;
+  const data=`ΔH<sub>sub</sub>(${m}) = ${sb}, IE₁(${m}) = ${i1}${n>1?`, IE₂(${m}) = ${i2}`:''}, BE(${x}₂) = ${be}, ΔH<sub>EA</sub>(${x}) = ${ea}`;
+  const steps=`ΔH<sub>sub</sub> + ${n>1?'IE₁ + IE₂':'IE₁'} + ${n>1?'BE':'½BE'} + ${n>1?'2 × ':''}ΔH<sub>EA</sub>`;
+  if(kind==='mx'||kind==='mx2'){const tr=[[sb+ieUse+(n===1?be:be/2)+eaUse-hf,n===1?'You used the full Cl₂/F₂ bond energy. One halide per formula unit needs ½BE.':'You used ½BE. Two halide atoms need the full bond energy.'],[sb+ieUse+beUse+eaUse+hf,'Sign slip: U = (sum of steps) − ΔH<sub>f</sub>°, and ΔH<sub>f</sub>° is negative, so subtracting it adds.'],[-U,'Sign: lattice energy here is the energy to separate the solid, so it is positive.']];
+    if(n>1){tr.push([sb+i1+beUse+eaUse-hf,'You left out IE₂. M²⁺ needs two ionization steps.']);tr.push([sb+ieUse+beUse+ea-hf,'Two halide ions → 2 × ΔH<sub>EA</sub>.']);}
+    return NUM(`Use the Born–Haber cycle to find the <b>lattice energy</b> of ${F(f)} (as energy to separate the solid into gas ions, positive). Data in kJ/mol: ${data}, ΔH<sub>f</sub>°(${F(f)}) = ${hf}.`,[{label:'U (kJ/mol)',ans:U,abs:2,traps:tr}],
+     `<p>U = ${steps} − ΔH<sub>f</sub>° = ${sb} + ${n>1?`${i1} + ${i2}`:i1} + ${beUse} + ${n>1?`2(${ea})`:`(${ea})`} − (${hf}) = <b>${+U.toFixed(1)} kJ/mol</b>.</p><p>Why each piece: make gas ${m} atoms (sublimation), turn them into ${ionLabel(m,n)} (${n>1?'two':'one'} IE), split ${n>1?'one whole':'half a'} ${x}₂ molecule for ${n} ${x} atom${n>1?'s':''}, add electron${n>1?'s':''} (EA). The cycle total equals ΔH<sub>f</sub>°.</p>`,{hints:H7.bh});}
+  const Ur=Math.round(U);
+  if(kind==='hf'){const ans=sb+ieUse+beUse+eaUse-Ur;
+    return NUM(`The lattice energy of ${F(f)} is ${Ur} kJ/mol (to separate the solid into gas ions). Use the Born–Haber cycle to find <b>ΔH<sub>f</sub>°</b>. Data in kJ/mol: ${data}.`,[{label:'ΔHf° (kJ/mol)',ans,abs:2,traps:[[sb+ieUse+beUse+eaUse+Ur,'Forming the lattice from gas ions releases energy: subtract U.'],[sb+ieUse+(n===1?be:be/2)+eaUse-Ur,n===1?'Use ½BE for one halogen atom.':'Use the full BE for two halogen atoms.']]}],
+     `<p>ΔH<sub>f</sub>° = ${steps} − U = ${sb} + ${n>1?`${i1} + ${i2}`:i1} + ${beUse} + (${eaUse}) − ${Ur} = <b>${+ans.toFixed(1)} kJ/mol</b>. Negative makes sense: the salt is stable.</p>`,{hints:H7.bh});}
+  const ans=hf+Ur-sb-ieUse-beUse;
+  return NUM(`Use the Born–Haber cycle to find the <b>electron affinity</b> ΔH<sub>EA</sub> of ${x}. Data in kJ/mol: ΔH<sub>sub</sub>(${m}) = ${sb}, IE₁(${m}) = ${i1}, BE(${x}₂) = ${be}, lattice energy of ${F(f)} = ${Ur}, ΔH<sub>f</sub>°(${F(f)}) = ${hf}.`,[{label:'ΔH_EA (kJ/mol)',ans,abs:2,traps:[[-ans,'Sign: adding an electron to a halogen releases energy, so ΔH<sub>EA</sub> is negative.'],[hf+Ur-sb-ieUse-be,'Use ½BE: one halogen atom per formula unit.']]}],
+   `<p>ΔH<sub>f</sub>° = ΔH<sub>sub</sub> + IE₁ + ½BE + ΔH<sub>EA</sub> − U → ΔH<sub>EA</sub> = ΔH<sub>f</sub>° + U − ΔH<sub>sub</sub> − IE₁ − ½BE = ${hf} + ${Ur} − ${sb} − ${i1} − ${beUse} = <b>${+ans.toFixed(1)} kJ/mol</b>.</p>`,{hints:H7.bh});};}
+
+const FORMS_={2:[['O','F','OF2'],['O','H','H2O'],['S','Cl','SCl2'],['S','H','H2S']],3:[['P','F','PF3'],['N','H','NH3'],['N','Cl','NCl3'],['P','Cl','PCl3']],4:[['C','Cl','CCl4'],['Si','H','SiH4'],['C','H','CH4'],['Si','Cl','SiCl4']],d:[['C','S','CS2'],['C','O','CO2']]};
+const VALN={H:1,F:1,Cl:1,O:2,S:2,N:3,P:3,C:4,Si:4};
+function gForm(k){return r=>{const [a,b,f]=pick(r,FORMS_[k]);const c=VALN[a]>=VALN[b]?a:b,o=c===a?b:a;const n=VALN[c]/VALN[o];
+  const W=[`${c}${o}`,`${c}${o}2`,`${c}${o}3`,`${c}${o}4`,`${c}${o}5`,`${c}2${o}`];
+  const disp=(c==='O'||c==='S')&&o==='H'?w=>w.replace(new RegExp(`^${c}${o}(\\d?)$`),`${o}$1${c}`):w=>w;
+  return MC(r,`Predict the formula of the compound formed by ${NAME(a).toLowerCase()} and ${NAME(b).toLowerCase()}, with every atom obeying the octet rule (H: duet).`,F(f),uniq(W.map(disp)).filter(w=>w!==f).map(F),
+   `<p>Valence: ${c} = ${VALN[c]}, ${o} = ${VALN[o]}. ${c} is central; ${VALN[c]} ÷ ${VALN[o]} = ${n} ${o} atom${n>1?'s':''}${k==='d'?` (each ${o} uses 2 bonds, so double bonds: ${o}=${c}=${o})`:''} → <b>${F(f)}</b>.</p>`,{hints:H7.form});};}
+const VCP={neutral:[['CH4',0],['H2O',0],['NH3',0],['CO2',0],['SO2',0],['SO3',0],['PCl5',0],['SF4',0],['ClF3',0],['XeF4',0],['HCN',0],['CH2O',0],['C2H4',0],['CH3OH',0],['N2O',0],['O3',0]],
+ anion:[['SO3',-2],['SO4',-2],['NO3',-1],['NO2',-1],['CO3',-2],['PO4',-3],['ClO4',-1],['ClO3',-1],['OH',-1],['CN',-1],['SCN',-1],['I3',-1]],cation:[['NH4',1],['H3O',1],['NO',1],['NO2',1],['PH4',1]]};
+function gVC(k){return r=>{const [f,q]=pick(r,VCP[k]);const v=totalVal(f,q);const P=parseF(f);const base=totalVal(f,0);
+  const tr=[];if(q){tr.push([base,'You left out the charge. Add 1 e⁻ per negative charge, remove 1 per positive charge.']);tr.push([base+q,'Charge sign slip: a negative ion has <b>extra</b> electrons (add), a positive ion has fewer (subtract).']);}
+  const once=Object.keys(P).reduce((s,e)=>s+VAL[e],0)-q;if(once!==v)tr.push([once,'Multiply by the number of each atom (subscripts).']);
+  return NUM(`How many total valence electrons are in ${ionF(f,q)}?`,[{label:'Valence e⁻',ans:v,abs:0,traps:tr}],
+   `<p>${Object.entries(P).map(([e,n])=>`${e} ${n>1?`${n} × ${VAL[e]}`:VAL[e]}`).join(' + ')} = ${base}${q?`, ${q<0?`plus ${-q}`:`minus ${q}`} for the ${q<0?(-q>1?-q:'')+MINUS:(q>1?q:'')+'+'} charge`:''} → <b>${v}</b>.</p>`,{hints:H7.vc});};}
+const BLD={'C–C':[[1,154,347],[2,134,614],[3,120,839]],'C–N':[[1,147,293],[2,127,615],[3,115,891]],'C–O':[[1,143,358],[2,120,745],[3,113,1072]],'N–N':[[1,146,163],[2,122,418],[3,110,945]]};
+function gBL(kind){return r=>{const fam=pick(r,Object.keys(BLD));const [a,b]=fam.split('–');const sym=['','–','=','≡'];const items=BLD[fam].map(([o,l,e])=>({o,l,e,lab:`${a}${sym[o]}${b}`}));
+  const dir=pick(r,['increasing','decreasing']);const isL=kind==='len';
+  return rankQ(r,items,x=>isL?x.l:x.e,x=>x.lab,dir,`Rank the ${fam.replace('–','–')} bonds in order of <b>${dir} bond ${isL?'length':'energy'}</b>: ${shuf(r,items).map(x=>x.lab).join(', ')}.`,
+   `<p>Same two atoms → bond order decides. More shared pairs pull the nuclei closer (shorter) and take more energy to break (stronger). Values: ${items.map(x=>`${x.lab} ${x.l} pm, ${x.e} kJ/mol`).join('; ')}.</p>`,{hints:H7.bl});};}
+const DENP=[['K','F'],['N','Cl'],['C','O'],['Si','O'],['H','Cl'],['C','H'],['Na','Cl'],['O','H'],['N','H'],['C','S'],['Mg','O'],['Al','Cl'],['B','F'],['P','H'],['C','Cl'],['S','O'],['Li','Br'],['Ca','F'],['Al','O'],['Br','Cl'],['C','N'],['H','F'],['Be','Cl'],['Si','Cl']];
+function gDEN(kind){return r=>{for(let t=0;t<400;t++){const rows=sample(r,DENP,4).map(([a,b])=>{const d=Math.abs(EN[a]-EN[b]);return [`${a}–${b}`,bondType(d),d,a,b];});
+  const types=uniq(rows.map(x=>x[1]));if(types.length<2)continue;
+  if(kind==='edge'&&!rows.some(x=>[0.4,0.5,1.7,1.8].some(e=>Math.abs(x[2]-e)<0.05)))continue;
+  return MATCH(`Classify each bond using your professor's cutoffs (ΔEN ≤ 0.4 nonpolar covalent, 0.5–1.7 polar covalent, ≥ 1.8 ionic) and the EN table on the cheat sheet.`,BT,rows.map(x=>[x[0],x[1]]),
+   `<p>${rows.map(x=>`${x[0]}: ${EN[x[3]].toFixed(1)} vs ${EN[x[4]].toFixed(1)} → ΔEN = ${x[2].toFixed(1)} → ${x[1]}`).join('. ')}.</p>`,{hints:H7.den});}};}
+const OCT={exc:[['BF3',0,'B has only 6 (incomplete)'],['BCl3',0,'B has only 6'],['BeCl2',0,'Be has only 4'],['BH3',0,'B has only 6'],['AlCl3',0,'Al has only 6'],['NO',0,'11 valence e⁻, odd → radical'],['NO2',0,'17 valence e⁻, odd → radical'],['ClO2',0,'19 valence e⁻, odd → radical'],['SF6',0,'S has 12 (expanded)'],['PCl5',0,'P has 10 (expanded)'],['XeF4',0,'Xe has 12 (expanded)'],['SF4',0,'S has 10 (expanded)'],['ClF3',0,'Cl has 10 (expanded)'],['XeF2',0,'Xe has 10 (expanded)'],['I3',-1,'central I has 10 (expanded)']],
+ ok:[['CO2',0],['NH4',1],['CF3',-1],['H2O',0],['CH4',0],['CN',-1],['N2',0],['NH3',0],['PCl3',0],['HCN',0],['CCl4',0],['NO3',-1],['OF2',0]]};
+function gOct(r){const ex=sample(r,OCT.exc,ri(r,2,4)),ok=sample(r,OCT.ok,6-ex.length);
+  return MULTI(r,'Which species contain an atom that does <b>not</b> obey the octet rule in its best Lewis structure?',[...ex.map(x=>({html:ionF(x[0],x[1]),c:1})),...ok.map(x=>({html:ionF(x[0],x[1])}))],
+   `<p>${ex.map(x=>`${ionF(x[0],x[1])}: ${x[2]}`).join('. ')}. ${ok.map(x=>ionF(x[0],x[1])).join(', ')} give every atom 8 (H 2).</p><p>Quick check: an odd total of valence e⁻ always means a radical.</p>`,{hints:H7.oct});}
+function gLP(kind){return r=>{const pool=MOLS.filter(m=>kind==='exp'?['P','S','Cl','Br','I','Xe','Kr','Se','As'].includes(m.c)&&m.X+m.E>4:m.X+m.E<=4&&m.X+m.E>=3&&m.E>0);const m=pick(r,pool);
+  const V=totalVal(m.f,m.q);const P=parseF(m.f);const outer=Object.entries(P).filter(([e])=>e!==m.c||P[m.c]>1).reduce((s,[e,n])=>s+(e===m.c?n-1:n)*(e==='H'?2:8),0);
+  const tr=[[V/2-m.X,'That counts every bond and lone pair in the whole molecule. Only the center’s lone pairs count.'],[2*m.E,'That is the number of lone-pair <b>electrons</b>. Divide by 2 for pairs.']];
+  return NUM(`How many <b>lone pairs</b> are on the central ${m.c} atom in ${m.h}?`,[{label:`Lone pairs on ${m.c}`,ans:m.E,abs:0,traps:tr}],
+   `<p>Total valence e⁻ = ${V}. Outer atoms need ${outer} (8 each, 2 for H). Left for the center: ${V} − ${outer} = ${V-outer} → <b>${m.E}</b> lone pair${m.E!==1?'s':''}.</p>`,{hints:H7.lp});};}
+
+/* ---------- linear Lewis structures for formal charge ---------- */
+const LS={
+ O3:{q:0,ss:[[['O',2],['O',1],['O',3],[2,1]]]},
+ CO2:{q:0,ss:[[['O',2],['C',0],['O',2],[2,2]],[['O',3],['C',0],['O',1],[1,3]]]},
+ N2O:{q:0,ss:[[['N',2],['N',0],['O',2],[2,2]],[['N',1],['N',0],['O',3],[3,1]],[['N',3],['N',0],['O',1],[1,3]]]},
+ SCN:{q:-1,ss:[[['S',2],['C',0],['N',2],[2,2]],[['S',3],['C',0],['N',1],[1,3]],[['S',1],['C',0],['N',3],[3,1]]]},
+ OCN:{q:-1,ss:[[['O',2],['C',0],['N',2],[2,2]],[['O',3],['C',0],['N',1],[1,3]],[['O',1],['C',0],['N',3],[3,1]]]},
+ N3:{q:-1,ss:[[['N',2],['N',0],['N',2],[2,2]],[['N',1],['N',0],['N',3],[3,1]]]},
+ NO2:{q:-1,ss:[[['O',2],['N',1],['O',3],[2,1]]]},NO2p:{f:'NO2',q:1,ss:[[['O',2],['N',0],['O',2],[2,2]]]},
+ CN:{q:-1,ss:[[['C',1],['N',1],[3]]]},CO:{q:0,ss:[[['C',1],['O',1],[3]]]},NO:{f:'NO',q:1,ss:[[['N',1],['O',1],[3]]]},HCN:{q:0,ss:[[['H',0],['C',0],['N',1],[1,3]]]}};
+const lsAtoms=s=>s.slice(0,-1),lsBonds=s=>s[s.length-1];
+function fcOf(s){const A=lsAtoms(s),B=lsBonds(s);return A.map(([e,lp],i)=>VAL[e]-2*lp-((B[i-1]||0)+(B[i]||0)));}
+function lsText(s,hi){return lsAtoms(s).map(([e,lp],i)=>`${e}${i===hi?' (highlighted)':''} with ${lp} lone pair${lp!==1?'s':''}`).reduce((acc,x,i)=>acc+(i?` ${['','single','double','triple'][lsBonds(s)[i-1]]}-bonded to `:'')+x,'');}
+function lsSVG(s,hi,label){const A=lsAtoms(s),B=lsBonds(s);const n=A.length,W=60+90*(n-1)+60,y=50;const X=i=>60+i*90;let g='';
+  B.forEach((o,i)=>{const off=o===1?[0]:o===2?[-5,5]:[-8,0,8];off.forEach(d=>{g+=`<line x1="${X(i)+14}" y1="${y+d}" x2="${X(i+1)-14}" y2="${y+d}" stroke="var(--fg)" stroke-width="2"/>`;});});
+  A.forEach(([e,lp],i)=>{const pos=i===0?[[-1,0],[0,-1],[0,1]]:i===n-1?[[1,0],[0,-1],[0,1]]:[[0,-1],[0,1]];
+    for(let k=0;k<lp;k++){const [dx,dy]=pos[k];const cx=X(i)+dx*22,cy=y+dy*22;g+=dx===0?`<circle cx="${cx-5}" cy="${cy}" r="2.3" fill="var(--fg)"/><circle cx="${cx+5}" cy="${cy}" r="2.3" fill="var(--fg)"/>`:`<circle cx="${cx}" cy="${cy-5}" r="2.3" fill="var(--fg)"/><circle cx="${cx}" cy="${cy+5}" r="2.3" fill="var(--fg)"/>`;}
+    g+=`<text x="${X(i)}" y="${y+6}" text-anchor="middle" font-size="19" font-weight="700" style="font-family:var(--sans)" fill="${i===hi?'var(--accent)':'var(--fg)'}">${e}</text>`;});
+  if(hi!=null)g+=`<text x="${X(hi)}" y="${y+44}" text-anchor="middle" font-size="11" fill="var(--accent)" style="font-family:var(--sans)">this ${A[hi][0]}</text>`;
+  return `<svg class="lewis" viewBox="0 0 ${W} 100" style="max-width:${W+20}px" role="img" aria-label="${(label||'Lewis structure')+': '+lsText(s,hi)}">${g}</svg>`;}
+const lsName=k=>ionF(LS[k].f||k.replace('p',''),LS[k].q);
+function gFC(kind){return r=>{let k,s,hi;
+  for(let t=0;t<200;t++){k=pick(r,kind==='ion'?['SCN','OCN','N3','NO2','CN']:['O3','CO2','N2O','CO','NO2p','NO','HCN']);s=pick(r,LS[k].ss);const n=lsAtoms(s).length;hi=kind==='center'?(n===3?1:null):pick(r,n===3?[0,2]:[0,1]);if(hi==null)continue;if(lsAtoms(s)[hi][0]==='H')continue;break;}
+  const fc=fcOf(s);const [e,lp]=lsAtoms(s)[hi];const B=(lsBonds(s)[hi-1]||0)+(lsBonds(s)[hi]||0);const ans=fc[hi];
+  const tr=[[-ans,'Sign slip. FC = V − N − B; check the order of subtraction.'],[VAL[e]-lp-B,'You counted each lone pair as 1. N counts electrons: one pair = 2.'],[VAL[e]-2*lp-2*B,'You counted bonds as electrons (2 per line). B counts lines only.']].filter(t=>t[0]!==ans);
+  return NUM(`What is the <b>formal charge</b> on the highlighted ${e} atom in this Lewis structure of ${lsName(k)}?`,[{label:'Formal charge',ans,abs:0,traps:tr}],
+   `<p>FC = V − N − B = ${VAL[e]} − ${2*lp} − ${B} = <b>${sgn(ans)}</b>. N = ${lp} lone pair${lp!==1?'s':''} × 2; B = ${B} bond line${B!==1?'s':''}.</p><p>All formal charges: ${lsAtoms(s).map(([el_],i)=>`${el_} ${sgn(fc[i])}`).join(', ')}; they add to ${sgn(LS[k].q)} (the overall charge) ✓.</p>`,{visual:lsSVG(s,hi,'Lewis structure'),hints:H7.fc,hint:'Include the sign, e.g. +1 or -1.'});};}
+function bestIdx(k){const ss=LS[k].ss;const sc=ss.map(s=>{const f=fcOf(s);const A=lsAtoms(s);return [f.reduce((a,x)=>a+Math.abs(x),0),-f.reduce((a,x,i)=>a+(x<0?-x*EN[A[i][0]]:x>0?-x*EN[A[i][0]]:0),0)];});
+  let b=0;sc.forEach((v,i)=>{if(v[0]<sc[b][0]||(v[0]===sc[b][0]&&v[1]<sc[b][1]))b=i;});return b;}
+function gBest(r){const k=pick(r,['N2O','SCN','OCN']);const ss=LS[k].ss;const b=bestIdx(k);const L='ABC';
+  const opts=ss.map((s,i)=>({html:`<span class="k2">Structure ${L[i]}</span>${lsSVG(s,null,'structure '+L[i])}`,c:i===b?1:0}));
+  return {type:'single',title:TT.single,grid:1,prompt:`Which resonance structure of ${lsName(k)} is the <b>most stable</b> (best) according to formal charges?`,opts,
+   ex:`<p>${ss.map((s,i)=>`${L[i]}: ${lsAtoms(s).map(([e],j)=>`${e} ${sgn(fcOf(s)[j])}`).join(', ')}`).join('. ')}.</p><p>Best = <b>${L[b]}</b>: smallest formal charges${k!=='CO2'?`, with the negative charge on the more electronegative atom (EN: ${uniq(lsAtoms(ss[0]).map(x=>x[0])).map(e=>`${e} ${EN[e].toFixed(1)}`).join(', ')})`:' (all zero)'}.</p>`,hints:H7.best};}
+const BOP={3:[['CO3',-2,'C–O'],['NO3',-1,'N–O']],2:[['NO2',-1,'N–O'],['O3',0,'O–O'],['HCOO',-1,'C–O'],['C6H6',0,'C–C (benzene)'],['CH3COO',-1,'C–O (in the COO group)']]};
+function gBO(k){return r=>{const [f,q,lab]=pick(r,BOP[k]);const ans=k==='3'?4/3:1.5;const n=+k;
+  return NUM(`What is the ${lab} bond order in ${ionF(f,q)}? Give it as a decimal to two places.`,[{label:'Bond order',ans,abs:0.02,traps:[[2,'That is the double bond in one resonance structure. Average over all equivalent bonds.'],[1,'That is a single bond in one structure. The real bonds are all equal, in between.']]}],
+   `<p>One resonance structure has one double bond and ${n-1} single bond${n>2?'s':''} over ${n} equivalent ${lab.split(' ')[0]} links: (2 + ${n-1}) ÷ ${n} = <b>${ans.toFixed(2)}</b>. All ${n} bonds are really identical (resonance hybrid).</p>`,{hints:H7.bo});};}
+function gShape(kind){return r=>{const pool=MOLS.filter(m=>kind==='low'?m.X+m.E<=4:kind==='high'?m.X+m.E>=5:true);let rows;
+  for(let t=0;t<300;t++){rows=sample(r,pool,5);if(uniq(rows.map(shapeOf)).length>=4)break;}
+  return MATCH('Give the <b>molecular shape</b> of each species.',SHAPES,rows.map(m=>[m.h,shapeOf(m)]),
+   `<p>${rows.map(m=>`${m.h}: AX${m.X}${m.E?`E${m.E>1?m.E:''}`:''} (${m.X+m.E} EGs) → ${shapeOf(m)}`).join('. ')}. X = atoms bonded to the center; E = lone pairs on the center.</p>`,{hints:H7.shape});};}
+function gEG(kind){return r=>{const m=pick(r,MOLS.filter(x=>kind==='lp'?x.E>0:x.E===0));const eg=EGEOM[m.X+m.E],sh=shapeOf(m);
+  const lab=(a,b)=>`electron geometry: ${a}; molecular shape: ${b}`;const alt=shuf(r,[2,3,4,5,6].filter(k=>k!==m.X+m.E));const W=[lab(sh,eg),lab(sh,sh),lab(eg,eg),lab(EGEOM[alt[0]],EGEOM[alt[0]]),lab(EGEOM[alt[1]],sh),lab(eg,SHAPE_OF[(m.X-1)+','+(m.E+1)]||'bent'),lab(EGEOM[alt[2]],SHAPE_OF[(m.X)+','+(m.E+1)]||'T-shaped')];
+  return MC(r,`What are the electron-group geometry and the molecular shape of ${m.h}?`,lab(eg,sh),W,
+   `<p>Center ${m.c}: ${m.X} atom${m.X>1?'s':''} + ${m.E} lone pair${m.E!==1?'s':''} = ${m.X+m.E} electron groups → electron geometry <b>${eg}</b>. The shape names only the atoms → <b>${sh}</b>${m.E?'':' (same, because there are no lone pairs)'}.</p>`,{hints:H7.eg});};}
+const ANGQ={2:[['the O–C–O angle in CO₂'],['the H–C–N angle in HCN'],['the H–C–C angle in acetylene, HC≡CH'],['the C–C–N angle at the middle C in CH₃C≡N']],3:[['the H–C–H angle in formaldehyde, H₂C=O'],['the F–B–F angle in BF₃'],['the H–C–H angle in ethene, H₂C=CH₂'],['the C–C–C angle at the C=O carbon in acetone, (CH₃)₂C=O']],
+ 4:[['the C–O–H angle in methanol, CH₃OH'],['the H–N–H angle in NH₃'],['the H–O–H angle in H₂O'],['the C–N–H angle in methylamine, CH₃NH₂'],['the H–C–H angle in CH₄']],6:[['the angle between adjacent F atoms in SF₆'],['the F–Xe–F angle between adjacent F atoms in XeF₄']]};
+function gAng(k){return r=>{const [d]=pick(r,ANGQ[k]);const ans={2:'180°',3:'120°',4:'109.5°',6:'90°'}[k];
+  return MC(r,`What is the approximate (ideal) value of ${d}?`,ans,['90°','109.5°','120°','180°'],`<p>The angle belongs to the middle atom. It has ${k} electron groups → ${EGEOM[k]} base → <b>${ans}</b>.${k===4?' Lone pairs squeeze the real angle a little smaller.':''}</p>`,{hints:H7.ang,nw:3});};}
+function gPol(r){const neu=MOLS.filter(m=>m.p!==null);let set;for(let t=0;t<200;t++){set=sample(r,neu,7);const np=set.filter(m=>m.p).length;if(np>=2&&np<=4)break;}
+  return MULTI(r,'Which molecules are <b>polar</b>?',set.map(m=>({html:m.h,c:m.p})),
+   `<p>${set.map(m=>`${m.h}: ${shapeOf(m)}${m.p?' → polar':' → nonpolar'}`).join('. ')}.</p><p>Rule: identical outer atoms and no lone pairs on the center → nonpolar. AX₂E₃ (linear) and AX₄E₂ (square planar) also cancel. Otherwise polar.</p>`,{hints:H7.pol});}
+const SPI={small:[['CO2','O=C=O',2,2],['HCN','H–C≡N',2,2],['N2','N≡N',1,2],['CH2O','H₂C=O',3,1],['HCOOH','formic acid, HCOOH (one C=O)',4,1]],
+ dbl:[['C2H4','ethene, H₂C=CH₂',5,1],['CH3COOH','acetic acid, CH₃COOH',7,1],['(CH3)2CO','acetone, (CH₃)₂C=O',9,1],['C4H6','1,3-butadiene, H₂C=CH–CH=CH₂',9,2],['C2H3Cl','vinyl chloride, H₂C=CHCl',5,1],['C3H6','propene, H₂C=CH–CH₃',8,1],['C6H6','benzene (one Kekulé structure)',12,3]],
+ tri:[['C2H2','acetylene, HC≡CH',3,2],['C3H3N','acrylonitrile, H₂C=CH–C≡N',6,3],['C3H4','propyne, CH₃–C≡CH',6,2],['CH3CN','acetonitrile, CH₃–C≡N',5,2]]};
+function gSP(k){return r=>{const [,lab,s,p]=pick(r,SPI[k]);const tot=s,nd=p;
+  return NUM(`How many σ bonds and how many π bonds are in ${lab}?`,[{label:'σ bonds',ans:s,abs:0,traps:[[s+p,'You counted π bonds as σ too. Each bond (single, double or triple) has exactly <b>one</b> σ.']]},{label:'π bonds',ans:p,abs:0,traps:[[p===2?1:p+1,'Triple bond = 1 σ + 2 π; double = 1 σ + 1 π.']]}],
+   `<p>Count every bond including each C–H: ${s} bonds total → <b>${s} σ</b> (one per bond). π: 1 per double bond, 2 per triple bond → <b>${p} π</b>.</p>`,{hints:H7.sp});};}
+const HYO=[['the CH₃ carbon in CH₃C≡N','sp³'],['the C≡N carbon in CH₃C≡N','sp'],['each C in ethene, H₂C=CH₂','sp²'],['each C in acetylene, HC≡CH','sp'],['the O in methanol, CH₃OH','sp³'],['the C=O carbon in acetone','sp²'],['the N in HC≡N','sp'],['the C in formaldehyde, H₂C=O','sp²'],['the N in methylamine, CH₃NH₂','sp³'],['each C in ethane, C₂H₆','sp³']];
+function gHyb(kind){return r=>{let rows;
+  if(kind==='org'){for(let t=0;t<200;t++){rows=sample(r,HYO,5);if(uniq(rows.map(x=>x[1])).length===3)break;}
+    return MATCH('Give the hybridization of each indicated atom.',HYB.slice(0,3),rows,`<p>${rows.map(x=>`${x[0]}: ${x[1]}`).join('. ')}. Count electron groups on that atom: single, double and triple bonds each count as one group, and so does each lone pair.</p>`,{hints:H7.hyb});}
+  for(let t=0;t<200;t++){rows=sample(r,MOLS.filter(m=>m.p!==null),5);if(uniq(rows.map(m=>m.X+m.E)).length>=4)break;}
+  return MATCH('Give the hybridization of the <b>central atom</b> in each molecule.',HYB,rows.map(m=>[m.h,HYBOF[m.X+m.E]]),
+   `<p>${rows.map(m=>`${m.h}: ${m.X+m.E} EGs → ${HYBOF[m.X+m.E]}`).join('. ')}. EGs on the center = hybrid orbitals.</p>`,{hints:H7.hyb});};}
+const OVL={ch:[['each C–H bond in ethene, H₂C=CH₂','C(sp²)–H(1s)'],['each C–H bond in ethane, H₃C–CH₃','C(sp³)–H(1s)'],['each C–H bond in acetylene, HC≡CH','C(sp)–H(1s)'],['the C–H bond in HCN','C(sp)–H(1s)'],['each C–H bond in methane','C(sp³)–H(1s)']],
+ cc:[['the σ part of the C=C bond in ethene','C(sp²)–C(sp²)'],['the σ part of the C≡C bond in acetylene','C(sp)–C(sp)'],['the C–C bond in ethane','C(sp³)–C(sp³)'],['the σ part of the C≡N bond in HCN','C(sp)–N(sp)']],
+ pi:[['the π bond in ethene','C(2p)–C(2p), side by side'],['each π bond in acetylene','C(2p)–C(2p), side by side']]};
+const OVO=['C(sp³)–H(1s)','C(sp²)–H(1s)','C(sp)–H(1s)','C(2p)–H(1s)','C(sp²)–C(sp²)','C(sp)–C(sp)','C(sp³)–C(sp³)','C(sp)–N(sp)','C(2p)–C(2p), side by side','C(sp²)–H(sp²)'];
+function gOvl(k){return r=>{const [d,a]=pick(r,OVL[k]);
+  return MC(r,`Which orbitals overlap to form ${d}?`,a,sample(r,OVO.filter(x=>x!==a),6),
+   `<p>${k==='pi'?'π bonds form from leftover <b>unhybridized 2p</b> orbitals overlapping side by side, above and below the bond axis.':'σ bonds use hybrid orbitals pointing along the bond axis; H only has 1s and never hybridizes.'} Hybridization from electron groups: 4 → sp³, 3 → sp², 2 → sp.</p>`,{hints:H7.ov,nw:4});};}
+function moFill(sp,ne){const lowZ=['Li','Be','B','C','N'].includes(sp);
+  const ord=lowZ?[['σ2s',2,1],['σ*2s',2,-1],['π2p',4,1],['σ2p',2,1],['π*2p',4,-1],['σ*2p',2,-1]]:[['σ2s',2,1],['σ*2s',2,-1],['σ2p',2,1],['π2p',4,1],['π*2p',4,-1],['σ*2p',2,-1]];
+  let left=ne,b=0,a=0,u=0;const fill=[];for(const [n,c,t] of ord){const k=Math.min(c,left);left-=k;if(t>0)b+=k;else a+=k;if(k){fill.push(`${n}${'⁰¹²³⁴'[k]}`);u+=c===4?(k<=2?k:4-k):(k===1?1:0);}}
+  return {bo:(b-a)/2,u,b,a,fill};}
+const MOS={o2:[['O',0],['O',1],['O',-1],['O',-2]],n2:[['N',0],['N',1],['N',-1]],other:[['B',0],['C',0],['F',0],['Li',0],['C',-1],['F',1]]};
+function gMO(k){return r=>{const [e,q]=pick(r,MOS[k]);const ne=2*VAL[e]-q;const M=moFill(e,ne);const lab=`${e}₂${q?chg(q):''}`;
+  const opt=(bo,u)=>`bond order ${+bo.toFixed(1)}, ${u?'paramagnetic':'diamagnetic'}`;const right=opt(M.bo,M.u);
+  const W=[opt(M.bo,M.u?0:1),opt(M.bo+0.5,M.u),opt(M.bo-0.5,M.u),opt(M.bo+1,M.u?0:1),opt(Math.max(0,M.bo-1),M.u)];
+  return MC(r,`According to MO theory, ${lab} has:`,right,W,
+   `<p>${ne} valence e⁻ (${VAL[e]} + ${VAL[e]}${q?` ${q<0?'+':'−'} ${Math.abs(q)}`:''}). Fill ${['Li','Be','B','C','N'].includes(e)?'(π2p below σ2p for B₂, C₂, N₂)':'(σ2p below π2p for O₂, F₂)'}: ${M.fill.join(' ')}.</p><p>Bonding ${M.b}, antibonding ${M.a} → BO = (${M.b} − ${M.a}) ÷ 2 = <b>${+M.bo.toFixed(1)}</b>. ${M.u?`${M.u} unpaired → <b>paramagnetic</b>`:'All paired → <b>diamagnetic</b>'}.</p>`,{hints:H7.mo,nw:4});};}
+
+/* ================== CHAPTER 8 ================== */
+const H8={
+ intra:['Physical change (boiling, melting, dissolving) → only IMFs between molecules break. Chemical change → bonds inside break.','Ask: is the substance still the same molecule afterward?'],
+ pic:['Dipole–dipole: δ+ end of one molecule lines up with the δ− end of the next. Gas molecules are far apart: no IMF lines.','Mark δ+ (H) and δ− (the more EN atom), then check which dashes join opposite ends.'],
+ imf:['Decision flow: ions present? → ionic. Polar? → dipole–dipole. H on N, O or F? → hydrogen bonding. Otherwise dispersion only.','Classify each substance with the flow, top to bottom.'],
+ hb:['Hydrogen bonding needs H bonded <b>directly</b> to N, O or F.','Look at what each H is attached to. H on C never H-bonds.'],
+ bp:['Boiling point tiers: dispersion only < dipole–dipole < H-bonding < ionic. Within a tier, bigger (more electrons) wins.','Find each substance’s strongest IMF first, then break ties by size.'],
+ iso:['Same formula → compare polarity, H-bonding and shape (surface area).','More contact (long chains), polarity or H-bonds → higher boiling point.'],
+ prop:['Stronger IMFs → higher bp, mp, viscosity, surface tension; <b>lower</b> vapor pressure.','Vapor pressure is the one that goes the opposite way.'],
+ phase:['Below mp → solid; between mp and bp → liquid; above bp → gas.','Compare the given temperature with each mp and bp.'],
+ vp:['Vapor pressure is high when IMFs are weak (easy to escape).','Lowest boiling point ↔ highest vapor pressure.'],
+ bpp:['A liquid boils when its vapor pressure equals the external pressure.','Lower outside pressure → boils at a lower temperature; higher → higher.'],
+ temp:['Higher temperature → more kinetic energy.','More molecules escape (VP up) and slide past each other easily (viscosity down).'],
+ disp:['Nonpolar → dispersion only; more electrons (bigger, more polarizable cloud) → stronger dispersion.','Compare electron counts / molar masses.']};
+const PROC={phys:[['liquid water boils','H₂O'],['ice melts','H₂O'],['ethanol evaporates','C₂H₅OH'],['dry ice (solid CO₂) sublimes','CO₂'],['iodine crystals sublime','I₂']],chem:[['water is split into H₂ and O₂ by electrolysis','H₂O'],['methane burns in oxygen','CH₄'],['hydrogen peroxide decomposes into water and O₂','H₂O₂']]};
+function gIntra(k){return r=>{const [p,m]=pick(r,PROC[k]);
+  const right=k==='phys'?'The intermolecular forces (IMFs) between molecules':'Covalent bonds inside the molecules';
+  return MC(r,`When ${p}, what is overcome?`,right,[k==='phys'?'Covalent bonds inside the molecules':'Only the intermolecular forces between molecules','Ionic bonds between ions','Both covalent bonds and IMFs, equally','Nuclear forces in the atoms'],
+   `<p>${k==='phys'?`This is a physical change: the molecules (${m}) stay intact; they just move apart. Only IMFs break.`:`This is a chemical change: new substances form, so covalent bonds inside ${m} must break (and new ones form).`} Bonds inside molecules are far stronger than IMFs (e.g. O–H ≈ 460 kJ/mol vs boiling water 41 kJ/mol).</p>`,{hints:H8.intra,nw:4});};}
+function hxm(x,y,flip,A,B){const hx=flip?x+34:x,cx=flip?x:x+34;
+  return {s:`<line x1="${hx}" y1="${y}" x2="${cx}" y2="${y}" stroke="var(--fg)" stroke-width="1.8"/><circle cx="${hx}" cy="${y}" r="9" fill="var(--card)"/><text x="${hx}" y="${y+4}" text-anchor="middle" font-size="12" fill="var(--dplus)">${A}</text><circle cx="${cx}" cy="${y}" r="11" fill="var(--card)"/><text x="${cx}" y="${y+5}" text-anchor="middle" font-size="13" font-weight="600" fill="var(--dminus)">${B}</text>`,H:[hx,y],Cl:[cx,y]};}
+const dashL=(a,b)=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 3"/>`;
+const boxM=(inner,label,desc)=>`<svg class="mol" viewBox="0 0 260 190" role="img" aria-label="${desc||label}"><rect x="2" y="2" width="256" height="160" rx="10" fill="none" stroke="var(--fg)" stroke-width="1.5"/>${inner}<text x="130" y="182" text-anchor="middle" font-size="13" fill="var(--fg)" style="font-family:var(--sans)">${label}</text></svg>`;
+function picSet(B){const h=(x,y,f)=>hxm(x,y,f,'H',B);
+  const lg=()=>{const a=h(30,45),b=h(110,45),c=h(70,115);return boxM(dashL([a.Cl[0]+11,a.Cl[1]],[b.H[0]-9,b.H[1]])+dashL([c.H[0]-2,c.H[1]-9],[a.Cl[0],a.Cl[1]+11])+a.s+b.s+c.s,'Liquid Phase',`Liquid phase: dashes join the H of one molecule to the ${B} of another`);};
+  const lb=()=>{const a=h(30,45),b=h(130,45,true),c=h(70,115);return boxM(dashL([a.Cl[0]+11,a.Cl[1]],[b.Cl[0]-11,b.Cl[1]])+dashL([c.H[0],c.H[1]-9],[a.H[0],a.H[1]+9])+a.s+b.s+c.s,'Liquid Phase',`Liquid phase: dashes join ${B} to ${B} and H to H`);};
+  const gg=()=>{const a=h(20,30),b=h(190,60),c=h(90,128);return boxM(a.s+b.s+c.s,'Gas Phase','Gas phase: molecules far apart, no dashes');};
+  const gb=()=>{const a=h(20,30),b=h(190,60),c=h(90,128);return boxM(dashL([a.Cl[0]+11,a.Cl[1]],[b.H[0]-9,b.H[1]])+dashL([c.H[0]-3,c.H[1]-9],[a.Cl[0],a.Cl[1]+11])+a.s+b.s+c.s,'Gas Phase','Gas phase: molecules far apart but joined by dashes');};
+  return {lg,lb,gg,gb};}
+function gPic(k){return r=>{const B=k==='hb'?'F':pick(r,['Cl','Br']);const P=picSet(B);const hb=B==='F';
+  return MULTI(r,`Three ${F('H'+B)} molecules are pictured in liquid and gas boxes, with dashed lines for the dominant IMF. Select ALL correct pictures and designations.`,
+   [{html:P.lg(),c:1},{html:P.lb()},{html:P.gg(),c:1},{html:P.gb()},{html:'Dominant IMF: dipole–dipole',c:hb?0:1},{html:'Dominant IMF: hydrogen bonding',c:hb?1:0}],
+   `<p>H${B} is polar: H is δ+, ${B} is δ−. Correct dashes connect <b>H of one molecule to ${B} of another</b>. Like ends (${B}···${B}, H···H) repel. Gas molecules are far apart, so no dashes.</p><p>${hb?'H is bonded to F → <b>hydrogen bonding</b>.':`Not hydrogen bonding: H is on ${B}, and H-bonding needs H on N, O or F → <b>dipole–dipole</b>.`}</p>`,{grid:1,hints:H8.pic});};}
+const IMFS=Object.keys(SUBS).filter(k=>!['CO2'].includes(k));
+function gIMF(r){let rows;for(let t=0;t<300;t++){rows=sample(r,IMFS,5);if(uniq(rows.map(k=>SUBS[k].t)).length>=3)break;}
+  return MATCH('Give the <b>main</b> (strongest) attractive force in each substance.',IMF,rows.map(k=>[subH(k),IMF[SUBS[k].t]]),
+   `<p>${rows.map(k=>`${F(k)}: ${['nonpolar → dispersion only','polar, no H on N/O/F → dipole–dipole','H on N, O or F → hydrogen bonding','metal + nonmetal → ionic'][SUBS[k].t]}`).join('. ')}.</p>`,{hints:H8.imf});}
+const HBP={yes:[['CH3CH2OH','O–H'],['H2NNH2','N–H (hydrazine)'],['HOCl','O–H'],['CH3NH2','N–H'],['HF','H–F'],['H2O','O–H'],['NH3','N–H'],['CH3COOH','O–H'],['H2O2','O–H']],no:[['(CH3)3N','H only on C'],['CH3F','H only on C'],['H2CO','H only on C'],['CH3OCH3','H only on C'],['CH4','no N, O or F'],['HCl','H on Cl, not N/O/F'],['(CH3)2CO','H only on C'],['PH3','H on P']]};
+function gHB(r){const y=sample(r,HBP.yes,ri(r,2,4)),n=sample(r,HBP.no,6-y.length);
+  return MULTI(r,'Which can form hydrogen bonds with other molecules of the <b>same kind</b>?',[...y.map(x=>({html:F(x[0]),c:1})),...n.map(x=>({html:F(x[0])}))],
+   `<p>Yes: ${y.map(x=>`${F(x[0])} (${x[1]})`).join(', ')}. No: ${n.map(x=>`${F(x[0])} (${x[1]})`).join(', ')}.</p>`,{hints:H8.hb});}
+const BPS=Object.keys(SUBS).filter(k=>k!=='CO2');
+function gBP(k){return r=>{let set;
+  for(let t=0;t<600;t++){
+    if(k==='tiers'){set=[0,1,2,3].map(tt=>pick(r,BPS.filter(x=>SUBS[x].t===tt)));}
+    else if(k==='disp'){set=sample(r,BPS.filter(x=>SUBS[x].t===0),4);}
+    else{set=[pick(r,BPS.filter(x=>SUBS[x].t===2)),...sample(r,BPS.filter(x=>SUBS[x].t<2),3)];}
+    const b=set.map(x=>SUBS[x].bp).sort((a,c)=>a-c);if(b.every((v,i)=>i===0||v-b[i-1]>=12))break;}
+  const dir=pick(r,['increasing','decreasing']);
+  return rankQ(r,set,x=>SUBS[x].bp,F,dir,`Rank in order of <b>${dir}</b> boiling point: ${shuf(r,set).map(F).join(', ')}.`,
+   `<p>Strongest IMF: ${set.map(x=>`${F(x)} ${IMF[SUBS[x].t]}`).join('; ')}. ${k==='disp'?'All dispersion only → more electrons (bigger) wins.':k==='hb'?'H-bonding can beat heavier molecules that only have dispersion or dipole forces.':'Tiers: dispersion < dipole–dipole < H-bonding < ionic.'} Real values (°C): ${[...set].sort((a,b)=>SUBS[a].bp-SUBS[b].bp).map(x=>`${F(x)} ${SUBS[x].bp}`).join(', ')}.</p>`,{hints:H8.bp});};}
+const ISOP={pol:['cis-1,2-dichloroethene and trans-1,2-dichloroethene have the same formula. Which has the higher boiling point, and why?','cis, because it is polar and has dipole–dipole forces',['trans, because it is more symmetric','cis, because it has a higher molar mass','trans, because it can hydrogen bond','They boil at the same temperature'],'In cis, both C–Cl dipoles point the same way → polar. In trans they cancel → nonpolar. Same mass, so the polar isomer wins: cis 60 °C vs trans 48 °C.'],
+ shape:['n-pentane (a straight chain) and neopentane (a compact, branched sphere) are both C₅H₁₂. Which has the higher boiling point, and why?','n-pentane, because its long shape has more surface contact and stronger dispersion forces',['neopentane, because it is more compact','neopentane, because branching adds hydrogen bonding','n-pentane, because it is polar','They boil at the same temperature, because they have the same mass'],'Both nonpolar, same electrons. The straight chain touches its neighbors along its whole length → stronger dispersion: 36 °C vs 9.5 °C.'],
+ hb:['Ethanol (CH₃CH₂OH) and dimethyl ether (CH₃OCH₃) are both C₂H₆O. Which has the higher boiling point, and why?','ethanol, because it has an O–H and can hydrogen bond',['dimethyl ether, because it is more symmetric','dimethyl ether, because its O is in the middle','ethanol, because it has more electrons','They boil at the same temperature, because they have the same formula'],'Ethanol has H on O → H-bonding. In the ether every H is on C, so only dipole–dipole: 78 °C vs −24 °C.']};
+const gIsoB=k=>r=>{const [p,a,w,why]=ISOP[k];return MC(r,p,a,w,`<p>${why}</p>`,{hints:H8.iso});};
+function gProp(k){return r=>{const s=k==='strong';
+  const items=[{html:`a ${s?'higher':'lower'} boiling point`,c:1},{html:`a ${s?'higher':'lower'} viscosity`,c:1},{html:`a ${s?'higher':'lower'} surface tension`,c:1},{html:`a ${s?'lower':'higher'} vapor pressure`,c:1},{html:`a ${s?'higher':'lower'} vapor pressure`},{html:`a ${s?'lower':'higher'} melting point`},{html:'covalent bonds that are easier to break'}];
+  return MULTI(r,`Liquids X and Y have similar structures, but X has <b>${s?'stronger':'weaker'}</b> intermolecular forces. Compared with Y, liquid X has:`,sample(r,items,6).sort((a,b)=>0),
+   `<p>${s?'Stronger':'Weaker'} IMFs → ${s?'higher':'lower'} bp, mp, viscosity and surface tension. <b>Vapor pressure goes the other way</b>: ${s?'fewer molecules escape → lower':'more molecules escape → higher'}. IMFs are not covalent bonds.</p>`,{hints:H8.prop});};}
+const PHC={ethanol:[-114,78],naphthalene:[80,218],propane:[-188,-42],acetone:[-95,56],water:[0,100],benzene:[5.5,80],methane:[-182,-162],butane:[-138,-0.5],phenol:[41,182],'acetic acid':[17,118],iodine:[114,184],bromine:[-7,59],mercury:[-39,357],ammonia:[-78,-33],cyclohexane:[6.5,81],octane:[-57,126]};
+function gPhase(k){return r=>{const T=k==='room'?25:pick(r,[-50,-20,0,50,100,150]);
+  let names;for(let t=0;t<300;t++){names=sample(r,Object.keys(PHC).filter(n=>PHC[n].every(v=>Math.abs(v-T)>=3)),4);const ph=names.map(n=>T<PHC[n][0]?'solid':T<PHC[n][1]?'liquid':'gas');if(uniq(ph).length>=2)break;}
+  const ph=n=>T<PHC[n][0]?'solid':T<PHC[n][1]?'liquid':'gas';
+  return MATCH(`Predict the phase of each substance at <b>${T} °C</b>${k==='room'?' (room temperature)':''}.`,PH,names.map(n=>[n[0].toUpperCase()+n.slice(1),ph(n)]),
+   `<p>Below mp → solid; between mp and bp → liquid; above bp → gas. ${names.map(n=>`${n}: mp ${PHC[n][0]}, bp ${PHC[n][1]} → ${ph(n)}`).join('. ')}.</p>`,
+   {visual:`<div class="tbl"><table><thead><tr><th>Compound</th><th>Melting point (°C)</th><th>Boiling point (°C)</th></tr></thead><tbody>${names.map(n=>`<tr><td>${n[0].toUpperCase()+n.slice(1)}</td><td>${PHC[n][0]}</td><td>${PHC[n][1]}</td></tr>`).join('')}</tbody></table></div>`,hints:H8.phase});};}
+const VPL=[['water','H2O',100],['ethanol','CH3CH2OH',78],['diethyl ether','CH3CH2OCH2CH3',35],['1-butanol','CH3CH2CH2CH2OH',118],['acetone','(CH3)2CO',56],['methanol','CH3OH',65],['hexane','C6H14',69],['dichloromethane','CH2Cl2',40],['octane','C8H18',126]];
+function gVP(k){return r=>{let set;for(let t=0;t<300;t++){set=sample(r,VPL,4);const b=set.map(x=>x[2]).sort((a,c)=>a-c);if(b.every((v,i)=>i===0||v-b[i-1]>=8))break;}
+  const s=[...set].sort((a,b)=>a[2]-b[2]);const ans=k==='high'?s[0]:s[s.length-1];const lab=x=>`${x[0]}, ${F(x[1])}`;
+  return MC(r,`At the same temperature, which liquid has the <b>${k==='high'?'highest':'lowest'}</b> vapor pressure?`,lab(ans),set.filter(x=>x!==ans).map(lab),
+   `<p>${k==='high'?'Highest':'Lowest'} vapor pressure = ${k==='high'?'weakest':'strongest'} IMFs = ${k==='high'?'lowest':'highest'} boiling point. Boiling points: ${s.map(x=>`${x[0]} ${x[2]} °C`).join(', ')}.</p>`,{hints:H8.vp});};}
+const BPQ=[['At high altitude, water boils at a lower temperature than at sea level because:','the external pressure is lower, so the vapor pressure reaches it at a lower temperature',['the IMFs in water are weaker at high altitude','there is less oxygen in the air','water’s vapor pressure decreases at high altitude'],'Boiling = vapor pressure equals outside pressure. Less air pressure → reached at a lower temperature.'],
+ ['A pressure cooker cooks food faster because:','the higher pressure inside raises the boiling point of water',['the higher pressure lowers the boiling point of water','steam has stronger IMFs than liquid water','the pot conducts heat faster'],'More outside pressure → the vapor pressure must climb higher → boils above 100 °C → hotter water cooks faster.'],
+ ['The <b>normal</b> boiling point of a liquid is the temperature at which:','its vapor pressure equals 1 atm (760 torr)',['its vapor pressure equals zero','it first starts to evaporate','its vapor pressure equals 0.5 atm'],'“Normal” means at standard pressure, 1 atm.'],
+ ['Water can be made to boil at room temperature by:','lowering the pressure above it with a vacuum pump',['raising the pressure above it','adding salt','stirring it rapidly'],'At 25 °C water’s vapor pressure is about 24 torr; pump the pressure down to that and it boils.']];
+const gBPP=k=>r=>{const [p,a,w,why]=BPQ[k];return MC(r,p,a,w,`<p>${why}</p>`,{hints:H8.bpp});};
+function gTemp(k){return r=>{const up=k==='up';
+  return MULTI(r,`As the temperature of a liquid <b>${up?'increases':'decreases'}</b>:`,[{html:`its vapor pressure ${up?'increases':'decreases'}`,c:1},{html:`its viscosity ${up?'decreases':'increases'}`,c:1},{html:`its vapor pressure ${up?'decreases':'increases'}`},{html:`its viscosity ${up?'increases':'decreases'}`},{html:`its intermolecular forces turn into covalent bonds`}],
+   `<p>${up?'More':'Less'} kinetic energy → ${up?'more':'fewer'} molecules escape (vapor pressure ${up?'up':'down'}) and molecules slide past each other ${up?'more':'less'} easily (viscosity ${up?'down':'up'}). The IMFs themselves don't become bonds.</p>`,{hints:H8.temp});};}
+const DSP={hal:['At room temperature, F₂ is a gas, Br₂ is a liquid, and I₂ is a solid. The best explanation is:','I₂ has the most electrons, so its dispersion forces are strongest',['I₂ is polar and F₂ is nonpolar','I₂ forms hydrogen bonds','F₂ has the strongest covalent bond','I₂ is ionic'],'All are nonpolar, so dispersion is the only IMF. More electrons → larger, more polarizable cloud → stronger dispersion.'],
+ nob:['The boiling point of xenon (−108 °C) is far higher than that of helium (−269 °C) because:','Xe has many more electrons, so it is more polarizable and has stronger dispersion forces',['Xe forms dipole–dipole forces','He atoms repel each other','Xe forms covalent bonds between atoms','Xe is ionic'],'Noble gases are single nonpolar atoms: dispersion only. Size (electron count) controls it.'],
+ hc:['Methane (CH₄) is a gas at room temperature but octane (C₈H₁₈) is a liquid because:','octane is larger with more electrons and more surface contact, so its dispersion forces are stronger',['octane is polar','octane can hydrogen bond','methane has stronger covalent bonds','methane is ionic'],'Both are nonpolar hydrocarbons; the longer chain has many more electrons and contact points: bp −162 °C vs 126 °C.']};
+const gDsp=k=>r=>{const [p,a,w,why]=DSP[k];return MC(r,p,a,w,`<p>${why}</p>`,{hints:H8.disp});};
+
+const ORIGQ=[
+/* ================= CHAPTER 6 ================= */
+{ch:6,topic:'6A · Electron configurations',ref:'Light & Atoms sheet, Part 4 §3–4',type:'text',title:'Fill in the blank',
+ prompt:`The ground-state configuration ${cfgH('[Ar] 4s2 3d10 4p3')} belongs to which element? Write the atomic symbol.`,
+ fields:[{label:'Symbol',accept:['as','arsenic']}],
+ ex:`<p>Neutral atom, so electrons = Z: 18 + 2 + 10 + 3 = <b>33 = As</b>. Cross-check: 4p³ is the 3rd box of the period-4 p-block.</p>`},
+{ch:6,topic:'6A · Orbital diagrams, Hund’s rule',ref:'Light & Atoms sheet, Part 4 §5',type:'single',title:'Multiple choice',
+ prompt:`Which orbital diagram is the ground state of the <b>oxygen</b> atom? (1s is full in every option.)`,
+ opts:[{html:diag([ob('2s',['↑↓']),ob('2p',['↑↓','↑','↑'])]),c:1},{html:diag([ob('2s',['↑↓']),ob('2p',['↑↓','↑↓',''])])},{html:diag([ob('2s',['↑']),ob('2p',['↑↓','↑↓','↑'])])},{html:diag([ob('2s',['↑↓']),ob('2p',['↑↑','↑',''])])}],
+ ex:`<p>2p⁴: one ↑ in each box, then the 4th electron pairs in the first box. B breaks <b>Hund</b> (pairs with a box empty), C breaks <b>Aufbau</b> (2s not full), D breaks <b>Pauli</b> (↑↑ in one box).</p>`},
+{ch:6,topic:'6A · Orbital diagrams, Aufbau/Pauli/Hund',ref:'Light & Atoms sheet, Part 4 §5',type:'multi',title:'Select ALL that apply',
+ prompt:`A student drew the valence orbital diagram for a <b>phosphorus</b> atom (core [Ne] not shown). You are the TA. Which rubric items apply?`,
+ visual:`<div class="diag">${ob('3s',['↑'])}${ob('3p',['↑↓','↑↑',''])}</div>`,
+ opts:[{html:'−0: Diagram is fully correct'},{html:'−1: Violates Aufbau (building-up) principle',c:1},{html:'−1: Violates Pauli exclusion principle',c:1},{html:'−1: Violates Hund’s rule',c:1},{html:'−1: Wrong total number of electrons'}],
+ ex:`<p>Total is 1 + 2 + 2 = 5 ✓ (P has 5 valence electrons), so E doesn't apply. 3s has only 1 electron while 3p is filling → <b>Aufbau</b>. The ↑↑ box → <b>Pauli</b>. Pairing in 3p while a box is empty → <b>Hund</b>. Correct: 3s [↑↓] 3p [↑][↑][↑].</p>`},
+{ch:6,topic:'6A · Aufbau exceptions',ref:'Light & Atoms sheet, Part 4 §6',type:'single',title:'Multiple choice',
+ prompt:`What is the ground-state electron configuration of <b>copper</b> (Z = 29)?`,
+ opts:[{html:cfgH('[Ar] 4s2 3d9')},{html:cfgH('[Ar] 4s1 3d10'),c:1},{html:cfgH('[Ar] 3d11')},{html:cfgH('[Kr] 4s1 3d10')},{html:cfgH('[Ar] 4s2 4p9')}],
+ ex:`<p>Cu is a Cu-column exception: one 4s electron moves into 3d so the d subshell is completely full (d¹⁰). The Cr column does the same thing to reach half-full d⁵.</p>`},
+{ch:6,topic:'6A · Core vs valence electrons',ref:'Light & Atoms sheet, Valence Electrons',type:'numeric',title:'Numeric',
+ prompt:`How many <b>valence</b> electrons does the configuration ${cfgH('[Kr] 5s2 4d10 5p3')} have?`,
+ fields:[{label:'Valence e⁻',ans:5,abs:0}],
+ ex:`<p>Main-group element (ends in p) → valence = highest-n electrons only: 5s² 5p³ = <b>5</b>. The full 4d¹⁰ is core. Check: Sb is Group 5A.</p>`},
+{ch:6,topic:'6A · Ion configurations & magnetism',ref:'Light & Atoms sheet, Part 4 §7–8',type:'single',title:'Multiple choice',
+ prompt:`Which correctly describes the <b>Fe²⁺</b> ion (Fe: Z = 26)?`,
+ opts:[{html:`${cfgH('[Ar] 4s2 3d4')}, paramagnetic, 4 unpaired e⁻`},{html:`${cfgH('[Ar] 3d6')}, paramagnetic, 4 unpaired e⁻`,c:1},{html:`${cfgH('[Ar] 3d6')}, diamagnetic`},{html:`${cfgH('[Ar] 3d6')}, paramagnetic, 6 unpaired e⁻`},{html:`${cfgH('[Ar] 4s1 3d5')}, paramagnetic, 6 unpaired e⁻`}],
+ ex:`<p>Transition metals lose the <b>4s electrons first</b>: Fe [Ar]4s²3d⁶ → Fe²⁺ [Ar]3d⁶. Fill 5 d boxes: one ↑ each (5), then the 6th pairs → [↑↓][↑][↑][↑][↑] = <b>4 unpaired → paramagnetic</b>.</p>`},
+{ch:6,topic:'6A · Ground vs excited state',ref:'Light & Atoms sheet, Part 4 §1',type:'single',title:'Multiple choice',
+ prompt:`Which configuration represents an <b>excited state</b>?`,
+ opts:[{html:cfgH('[He] 2s2 2p3')},{html:cfgH('[Ar] 4s1 3d5')},{html:cfgH('[Ne] 3s1 3p2'),c:1},{html:cfgH('[Ne] 3s2 3p4')},{html:cfgH('[Kr] 5s2')}],
+ ex:`<p>[Ne]3s¹3p² has an empty spot in 3s while an electron sits in higher 3p. That's aluminum (ground state [Ne]3s²3p¹) after absorbing energy. [Ar]4s¹3d⁵ is <b>chromium's real ground state</b> (an exception), not excited.</p>`},
+{ch:6,topic:'6A · Ion configurations',ref:'Light & Atoms sheet, Part 4 §7',type:'single',title:'Multiple choice',
+ prompt:`What are the n and ℓ quantum numbers of the outermost electrons in a <b>Mg²⁺</b> ion?`,
+ opts:[{html:'n = 3, ℓ = 0'},{html:'n = 3, ℓ = 1'},{html:'n = 2, ℓ = 1',c:1},{html:'n = 2, ℓ = 0'},{html:'n = 2, ℓ = 2'}],
+ ex:`<p>Mg is [Ne]3s². Losing 2 electrons empties 3s, leaving 1s²2s²2p⁶ (isoelectronic with Ne). Outermost = <b>2p → n = 2, ℓ = 1</b>.</p>`},
+{ch:6,topic:'6B · Atomic radius trend',ref:'Light & Atoms sheet, Part 6',type:'single',title:'Multiple choice',
+ prompt:`Rank in order of <b>increasing</b> atomic radius: Na, O, F, S.`,
+ opts:[{html:'F < O < S < Na',c:1},{html:'O < F < S < Na'},{html:'Na < S < O < F'},{html:'F < S < O < Na'}],
+ ex:`<p>Radius shrinks left → right (higher Z<sub>eff</sub>) and grows down a group (more shells). F < O (same period, F further right); S is a period lower than O; Na is far left in period 3.</p>`},
+{ch:6,topic:'6B · Ionization energy & exceptions',ref:'Light & Atoms sheet, Part 6 (IE exceptions on Ch 6 slides)',type:'single',title:'Multiple choice',
+ prompt:`Rank in order of <b>increasing</b> first ionization energy: Be, B, C, N, O.`,
+ opts:[{html:'Be < B < C < N < O'},{html:'B < Be < C < O < N',c:1},{html:'B < Be < C < N < O'},{html:'O < N < C < Be < B'}],
+ ex:`<p>IE₁ rises across a period, with two exceptions: <b>Be > B</b> (B's lone 2p electron is easier to remove than one from Be's full 2s) and <b>N > O</b> (O loses a paired electron and becomes half-full). Real values: 801, 899, 1086, 1314, 1402 kJ/mol.</p>`},
+{ch:6,topic:'6B · Successive ionization energies',ref:'Ch 6 slides, “Identifying an element from its IEs”',type:'text',title:'Fill in the blank',
+ prompt:`A <b>period-3</b> element has these ionization energies (kJ/mol): IE₁ 578, IE₂ 1817, IE₃ 2745, IE₄ 11 577, IE₅ 14 842. Which element is it? Write the symbol.`,
+ fields:[{label:'Symbol',accept:['al','aluminum','aluminium']}],
+ ex:`<p>The huge jump comes <b>after IE₃</b> (2745 → 11 577), so the atom has 3 valence electrons; the 4th comes from the core. Period 3 + 3 valence electrons = <b>Al</b>.</p>`},
+{ch:6,topic:'6B · Ionic radius (isoelectronic)',ref:'Light & Atoms sheet, Ion Size',type:'single',title:'Multiple choice',
+ prompt:`Rank in order of <b>decreasing</b> size: K⁺, S²⁻, Ca²⁺, Cl⁻.`,
+ opts:[{html:'Ca²⁺ > K⁺ > Cl⁻ > S²⁻'},{html:'S²⁻ > Cl⁻ > K⁺ > Ca²⁺',c:1},{html:'K⁺ > Ca²⁺ > S²⁻ > Cl⁻'},{html:'Cl⁻ > S²⁻ > Ca²⁺ > K⁺'}],
+ ex:`<p>All four have 18 electrons (isoelectronic). Same electrons, more protons → pulled in tighter. Z: S 16 < Cl 17 < K 19 < Ca 20, so S²⁻ is biggest and Ca²⁺ smallest.</p>`},
+{ch:6,topic:'6B · Electron affinity',ref:'Ch 6 slides, “Trends in Electron Affinity”',type:'single',title:'Multiple choice',
+ prompt:`Which element has a <b>less favorable</b> (less negative) electron affinity than the general trend predicts, because the added electron must pair with another in a half-filled p subshell?`,
+ opts:[{html:'C'},{html:'N',c:1},{html:'O'},{html:'F'}],
+ ex:`<p>N is 2p³, half-full. An added electron has to pair up, which costs repulsion energy, so Group 5A has a lower EA than expected. Groups 2A and 8A are also low (the electron goes into a higher sublevel or shell).</p>`},
+{ch:6,topic:'6B · Metallic character & oxides',ref:'Ch 6 slides, “Acid-Base Behavior of Oxides”',type:'single',title:'Multiple choice',
+ prompt:`Which oxide forms an <b>acidic</b> solution in water?`,
+ opts:[{html:F('Na2O')},{html:F('CaO')},{html:F('SO3'),c:1},{html:F('MgO')},{html:F('Al2O3')}],
+ ex:`<p>Nonmetal oxides (covalent) are acidic; metal oxides (ionic) are basic. S is a nonmetal → SO₃ is acidic. Al₂O₃ is <b>amphoteric</b> (acts as acid or base). Metallic character increases down and to the left.</p>`},
+{ch:6,topic:'6B · Shielding & penetration',ref:'Ch 6 slides, “Penetration and Shielding”',type:'single',title:'Multiple choice',
+ prompt:`In a hydrogen atom, the 2s and 2p orbitals have the same energy. Why is 2s <b>lower</b> in energy than 2p in a multi-electron atom such as Li?`,
+ opts:[{html:'2s electrons penetrate closer to the nucleus, so they are less shielded and feel a higher effective nuclear charge',c:1},{html:'2s orbitals are larger than 2p orbitals'},{html:'2p electrons are closer to the nucleus and are repelled by it'},{html:'Hund’s rule forces 2p electrons into higher energy'},{html:'They are still degenerate; 2s just fills first by convention'}],
+ ex:`<p>One-electron systems (H) have degenerate sublevels. In multi-electron atoms, electron–electron repulsion splits them: the 2s radial distribution penetrates inside the 1s cloud more than 2p, so 2s is less shielded → lower energy. Order: s < p < d < f.</p>`},
+
+/* ================= CHAPTER 7 ================= */
+{ch:7,topic:'7A · Lewis symbols',ref:'Bonding sheet, Part 1',type:'single',title:'Multiple choice',
+ prompt:`Which element's Lewis symbol shows exactly <b>three unpaired</b> dots?`,
+ opts:[{html:'Be'},{html:'C'},{html:'N',c:1},{html:'O'},{html:'Ne'}],
+ ex:`<p>Place one dot per side before pairing. N (5 valence e⁻): 1 pair + 3 singles → 3 unpaired, which is why N forms 3 bonds. C has 4 unpaired, O has 2, Be has 2, Ne has 0.</p>`},
+{ch:7,topic:'7B · Lattice energy trends',ref:'Bonding sheet, Part 2 Box 3',type:'single',title:'Multiple choice',
+ prompt:`Rank in order of <b>increasing</b> lattice energy: NaCl, MgO, KBr.`,
+ opts:[{html:'MgO < NaCl < KBr'},{html:'KBr < NaCl < MgO',c:1},{html:'NaCl < KBr < MgO'},{html:'KBr < MgO < NaCl'}],
+ ex:`<p>Charge product first: MgO is 2 × 2 = 4, the others are 1 × 1, so MgO is highest. Then size: K⁺ and Br⁻ are bigger than Na⁺ and Cl⁻, so KBr is lowest.</p>`},
+{ch:7,topic:'7B · Melting point & lattice energy',ref:'Bonding sheet, Part 2 Box 3',type:'single',title:'Multiple choice',
+ prompt:`Which ionic compound has the <b>highest melting point</b>?`,
+ opts:[{html:'NaCl'},{html:'KBr'},{html:'MgO',c:1},{html:'CaO'},{html:'LiF'}],
+ ex:`<p>Melting point follows lattice energy. MgO and CaO both have charges 2 × 2, beating the 1+/1− salts. Between them, Mg²⁺ is smaller than Ca²⁺ → shorter distance → higher lattice energy.</p>`},
+{ch:7,topic:'7B · Coulomb’s law',ref:'Bonding sheet, Part 2 Box 1',type:'numeric',title:'Numeric',
+ prompt:`Calculate the electrostatic <b>force</b> between a Mg²⁺ ion and an O²⁻ ion whose centers are <b>205 pm</b> apart. Use k<sub>e</sub> = 8.99 × 10⁹ N·m²/C² and e = 1.602 × 10⁻¹⁹ C. Give the magnitude in newtons.`,
+ hint:'Type scientific notation as 2.5e-8 or 2.5x10^-8.',
+ fields:[{label:'F (N)',ans:2.196e-8,rel:0.03}],
+ ex:`<p>q₁ = q₂ = 2 × 1.602 × 10⁻¹⁹ = 3.204 × 10⁻¹⁹ C. r = 205 × 10⁻¹² = 2.05 × 10⁻¹⁰ m.</p><p>F = (8.99 × 10⁹)(3.204 × 10⁻¹⁹)² ÷ (2.05 × 10⁻¹⁰)² = <b>2.20 × 10⁻⁸ N</b>. Traps: forgetting the charge of 2, plugging pm, or not squaring r.</p>`},
+{ch:7,topic:'7B · Born–Haber cycle',ref:'Bonding sheet, Part 2 Box 4',type:'numeric',title:'Numeric',
+ prompt:`Use the Born–Haber cycle to find the <b>lattice energy</b> of KCl (as energy to separate the solid into gas ions, positive). Data in kJ/mol: ΔH<sub>sub</sub>(K) = 89, IE₁(K) = 419, BE(Cl₂) = 243, ΔH<sub>EA</sub>(Cl) = −349, ΔH<sub>f</sub>°(KCl) = −437.`,
+ fields:[{label:'U (kJ/mol)',ans:717.5,abs:2}],
+ ex:`<p>U = ΔH<sub>sub</sub> + IE₁ + ½BE + ΔH<sub>EA</sub> − ΔH<sub>f</sub>° = 89 + 419 + 121.5 + (−349) − (−437) = <b>718 kJ/mol</b>. Traps: ½ BE for a 1:1 salt, and subtracting a negative ΔH<sub>f</sub> means adding.</p>`},
+{ch:7,topic:'7C · Predicting formulas from valence',ref:'Bonding sheet, Part 1 & Part 5 Box 5',type:'single',title:'Multiple choice',
+ prompt:`Predict the formula of the compound formed by phosphorus and fluorine, with every atom obeying the octet rule.`,
+ opts:[{html:F('PF')},{html:F('PF2')},{html:F('PF3'),c:1},{html:F('PF5')},{html:F('P3F')}],
+ ex:`<p>P (Group 5A) has valence 3; F has valence 1. P is central with the higher valence: 3 ÷ 1 = 3 F atoms. PF₅ exists, but P has 10 electrons there (expanded octet), so it doesn't obey the octet rule.</p>`},
+{ch:7,topic:'7C · Counting valence electrons',ref:'Bonding sheet, Part 5 Box 1',type:'numeric',title:'Numeric',
+ prompt:`How many total valence electrons are in the sulfite ion, ${F('SO3')}<sup>2−</sup>?`,
+ fields:[{label:'Valence e⁻',ans:26,abs:0}],
+ ex:`<p>S 6 + O 3 × 6 = 18, plus 2 for the 2− charge: 6 + 18 + 2 = <b>26</b>.</p>`},
+{ch:7,topic:'7D · Bond order, length, energy',ref:'Bonding sheet, Part 3',type:'single',title:'Multiple choice',
+ prompt:`Rank the carbon–nitrogen bonds in order of <b>increasing bond length</b>: C–N, C=N, C≡N.`,
+ opts:[{html:'C–N < C=N < C≡N'},{html:'C≡N < C=N < C–N',c:1},{html:'C=N < C≡N < C–N'},{html:'All three are the same length'}],
+ ex:`<p>Same two atoms, so bond order decides: more shared pairs pull the nuclei closer. Triple is shortest (and strongest), single is longest (and weakest).</p>`},
+{ch:7,topic:'7D · ΔEN and bond type',ref:'Bonding sheet, Part 4 Box 2 (cutoffs on prof sheet p.1)',type:'match',title:'Matching',
+ prompt:`Classify each bond using your professor's cutoffs (ΔEN ≤ 0.4 nonpolar covalent, 0.5–1.7 polar covalent, ≥ 1.8 ionic) and the EN table on the cheat sheet.`,
+ choices:BT,rows:[['K–F','ionic'],['N–Cl','nonpolar covalent'],['C–O','polar covalent'],['Si–O','polar covalent']],
+ ex:`<p>K–F: 4.0 − 0.8 = 3.2 → ionic. N–Cl: 3.0 − 3.0 = 0 → nonpolar (different atoms, no dipole). C–O: 3.5 − 2.5 = 1.0 → polar. Si–O: 3.5 − 1.8 = <b>1.7</b> → still polar covalent; ionic starts at 1.8.</p>`},
+{ch:7,topic:'7E · Octet-rule exceptions',ref:'Bonding sheet, Part 5 Box 4',type:'multi',title:'Select ALL that apply',
+ prompt:`Which species contain an atom that does <b>not</b> obey the octet rule in its best Lewis structure?`,
+ opts:[{html:F('BF3'),c:1},{html:F('NO'),c:1},{html:F('SF6'),c:1},{html:F('CO2')},{html:`${F('NH4')}<sup>+</sup>`},{html:`${F('CF3')}<sup>−</sup>`}],
+ ex:`<p>BF₃: B has 6 (incomplete). NO: 11 valence electrons, odd → a radical. SF₆: S has 12 (expanded). CO₂, NH₄⁺ and CF₃⁻ all give every atom 8 (H 2). Quick check: electrons around center = valence − q + number of outer atoms.</p>`},
+{ch:7,topic:'7E · Lewis structures (expanded octets)',ref:'Bonding sheet, Part 8 Box 1',type:'numeric',title:'Numeric',
+ prompt:`How many <b>lone pairs</b> are on the central Cl atom in ${F('ClF3')}?`,
+ fields:[{label:'Lone pairs on Cl',ans:2,abs:0}],
+ ex:`<p>(7 − 3) ÷ 2 = <b>2</b>. Check: V = 7 + 21 = 28; 3 bonds (6) + 9 F lone pairs (18) = 24, leaving 4 electrons = 2 pairs on Cl.</p>`},
+{ch:7,topic:'7F · Formal charge',ref:'Bonding sheet, Part 6 Box 1',type:'numeric',title:'Numeric',
+ prompt:`What is the <b>formal charge</b> on the highlighted central O atom in this resonance structure of ozone, O₃?`,
+ visual:lsSVG(LS.O3.ss[0],1,'Ozone Lewis structure'),hint:'Include the sign, e.g. +1 or -1.',
+ fields:[{label:'Formal charge',ans:1,abs:0}],
+ ex:`<p>FC = V − N − B = 6 − 2 − 3 = <b>+1</b>. N counts dots (1 pair = 2), B counts bond lines (double = 2, single = 1). The single-bonded end O is 6 − 6 − 1 = −1, and the sum is 0 ✓.</p>`},
+{ch:7,topic:'7F · Resonance & fractional bond order',ref:'Bonding sheet, Part 7 Box 2',type:'numeric',title:'Numeric',
+ prompt:`What is the C–O bond order in the carbonate ion, ${F('CO3')}<sup>2−</sup>? Give it as a decimal to two places.`,
+ fields:[{label:'Bond order',ans:4/3,abs:0.02}],
+ ex:`<p>One resonance structure has one C=O and two C–O: 4 bond lines over 3 C–O links = <b>1.33</b>. In the real ion all three C–O bonds are equal in length.</p>`},
+{ch:7,topic:'7G · VSEPR molecular shapes',ref:'Bonding sheet, Part 8 Box 2',type:'match',title:'Matching',
+ prompt:`Give the <b>molecular shape</b> of each species.`,
+ choices:SHAPES,rows:[[F('ClF3'),'T-shaped'],[F('XeF4'),'square planar'],[F('SO2'),'bent'],[F('PCl5'),'trigonal bipyramidal'],[F('NH3'),'trigonal pyramidal']],
+ ex:`<p>ClF₃ AX₃E₂ (5 EGs) → T-shaped. XeF₄ AX₄E₂ (6 EGs) → square planar. SO₂ AX₂E (3 EGs) → bent. PCl₅ AX₅ → trigonal bipyramidal. NH₃ AX₃E → trigonal pyramidal. X = atoms bonded; E = lone pairs on the center; X + E = EGs.</p>`},
+{ch:7,topic:'7G · Bond angles',ref:'Bonding sheet, Part 8 Box 3',type:'single',title:'Multiple choice',
+ prompt:`What is the approximate (ideal) C–O–H bond angle in methanol, ${F('CH3OH')}?`,
+ opts:[{html:'90°'},{html:'109.5°',c:1},{html:'120°'},{html:'180°'}],
+ ex:`<p>The angle belongs to the middle atom, O: 2 bonds + 2 lone pairs = 4 EGs → tetrahedral base, 109.5°. The real angle is a little smaller because the lone pairs squeeze it.</p>`},
+{ch:7,topic:'7H · Molecular polarity',ref:'Bonding sheet, Part 9 Box 1–2',type:'multi',title:'Select ALL that apply',
+ prompt:`Which molecules are <b>polar</b>?`,
+ opts:[{html:F('CO2')},{html:F('SO2'),c:1},{html:F('CCl4')},{html:F('CH2Cl2'),c:1},{html:F('XeF4')},{html:F('NF3'),c:1},{html:F('BF3')}],
+ ex:`<p>SO₂ (bent, lone pair on S), CH₂Cl₂ (tetrahedral but mixed outer atoms) and NF₃ (pyramidal, lone pair on N) are polar. CO₂, CCl₄ and BF₃ have identical outer atoms with no central lone pairs; XeF₄ is square planar, a lone-pair exception that still cancels.</p>`},
+{ch:7,topic:'7I · σ and π bonds',ref:'Bonding sheet, Part 10 Box 2',type:'numeric',title:'Numeric',
+ prompt:`Acrylonitrile is ${F('H2C=CH–C≡N')}. How many σ bonds and how many π bonds does it contain?`,
+ fields:[{label:'σ bonds',ans:6,abs:0},{label:'π bonds',ans:3,abs:0}],
+ ex:`<p>Bonds: 3 C–H, 1 C=C, 1 C–C, 1 C≡N = 6 bonds → <b>6 σ</b> (one per bond). π: 1 from C=C + 2 from C≡N = <b>3 π</b>.</p>`},
+{ch:7,topic:'7J · Hybridization',ref:'Bonding sheet, Part 10 Box 1',type:'match',title:'Matching',
+ prompt:`Give the hybridization of the <b>central atom</b> in each molecule.`,
+ choices:HYB,rows:[[F('SF6'),'sp³d²'],[F('PCl5'),'sp³d'],[F('NH3'),'sp³'],[F('BF3'),'sp²'],[`${F('CO2')} (C)`,'sp']],
+ ex:`<p>EGs on the center = hybrid orbitals: 6 → sp³d², 5 → sp³d, 4 → sp³ (NH₃'s lone pair counts), 3 → sp², 2 → sp (double bonds count as 1 EG each).</p>`},
+{ch:7,topic:'7I · Orbital overlap',ref:'Bonding sheet, Part 10 Box 3',type:'single',title:'Multiple choice',
+ prompt:`In ethene, ${F('H2C=CH2')}, each C–H bond forms from the overlap of which orbitals?`,
+ opts:[{html:'C(sp³)–H(1s)'},{html:'C(sp²)–H(1s)',c:1},{html:'C(2p)–H(1s)'},{html:'C(sp)–H(1s)'},{html:'C(sp²)–H(sp²)'}],
+ ex:`<p>Each C has 3 EGs (2 H + 1 C) → sp². σ bonds use hybrids; H only has 1s and never hybridizes. The leftover unhybridized 2p on each C forms the π bond of C=C.</p>`},
+{ch:7,topic:'7 · MO theory (study tips)',ref:'Bonding sheet, Part 11 Box 3',type:'single',title:'Multiple choice',
+ prompt:`According to MO theory, the superoxide ion O₂⁻ has:`,
+ opts:[{html:'bond order 2, paramagnetic'},{html:'bond order 1.5, paramagnetic',c:1},{html:'bond order 1.5, diamagnetic'},{html:'bond order 2.5, paramagnetic'},{html:'bond order 1, diamagnetic'}],
+ ex:`<p>13 valence electrons (6 + 6 + 1). Bonding 8, antibonding 5 → BO = (8 − 5)/2 = <b>1.5</b>. The 13th electron leaves one π* electron unpaired → <b>paramagnetic</b>.</p>`},
+
+/* ================= CHAPTER 8 ================= */
+{ch:8,topic:'8A · Intra- vs intermolecular forces',ref:'Ch 8 slides 7–8',type:'single',title:'Multiple choice',
+ prompt:`When liquid water boils, what is overcome?`,
+ opts:[{html:'The O–H covalent bonds inside each molecule'},{html:'Hydrogen bonds and other IMFs between molecules',c:1},{html:'Ionic bonds between H⁺ and O²⁻'},{html:'Both the O–H bonds and the IMFs'}],
+ ex:`<p>Boiling separates molecules; it doesn't break them. Steam is still H₂O. Breaking the O–H bonds takes about 927 kJ/mol versus 40.7 kJ/mol to boil water.</p>`},
+{ch:8,topic:'8B · Drawing IMFs between molecules',ref:'Ch 8 slides 13, 29–32',type:'multi',grid:true,title:'Select ALL that apply',
+ prompt:`Three ${F('HCl')} molecules are pictured in liquid and gas boxes, with dashed lines for the dominant IMF. Select ALL correct pictures and designations.`,
+ opts:[{html:picSet("Cl").lg(),c:1},{html:picSet("Cl").lb()},{html:picSet("Cl").gg(),c:1},{html:picSet("Cl").gb()},{html:'Dominant IMF: dipole–dipole',c:1},{html:'Dominant IMF: hydrogen bonding'}],
+ ex:`<p>HCl is polar (ΔEN 0.9): H is δ+, Cl is δ−. Correct dashes connect <b>H of one molecule to Cl of another</b> (A). B connects Cl···Cl and H···H (like ends repel). Gas molecules are far apart with no dashes (C, not D).</p><p>Not hydrogen bonding: H is on <b>Cl</b>, and H-bonding needs H on N, O or F.</p>`},
+{ch:8,topic:'8B · Main IMF',ref:'Ch 8 slides 32–36',type:'match',title:'Matching',
+ prompt:`Give the <b>main</b> (strongest) attractive force in each substance.`,
+ choices:IMF,rows:[[F('CH4'),'dispersion only'],[F('CH3Cl'),'dipole–dipole'],[F('CH3OH'),'hydrogen bonding'],[F('CaCl2'),'ionic'],['Kr','dispersion only']],
+ ex:`<p>Decision flow: ions? (CaCl₂ → ionic). Polar? (CH₃Cl yes → dipole–dipole). H on N/O/F? (CH₃OH has O–H → H-bonding). CH₄ and Kr are nonpolar → dispersion only.</p>`},
+{ch:8,topic:'8B · Hydrogen bonding',ref:'Ch 8 slides 21–30',type:'multi',title:'Select ALL that apply',
+ prompt:`Which can form hydrogen bonds with other molecules of the <b>same kind</b>?`,
+ opts:[{html:F('CH3CH2OH'),c:1},{html:F('(CH3)3N')},{html:`${F('H2NNH2')} (hydrazine)`,c:1},{html:F('CH3F')},{html:F('H2CO')},{html:F('HOCl'),c:1}],
+ ex:`<p>Look for H bonded directly to N, O or F: ethanol (O–H), hydrazine (N–H), HOCl (O–H). (CH₃)₃N has N but all its H's are on C. CH₃F and H₂CO have F or O, but their H's are on C.</p>`},
+{ch:8,topic:'8C · Ranking boiling points',ref:'Ch 8 slides 38–46',type:'single',title:'Multiple choice',
+ prompt:`Rank in order of <b>increasing</b> boiling point: HF, NaF, F₂, HCl.`,
+ opts:[{html:'F₂ < HCl < HF < NaF',c:1},{html:'HCl < F₂ < HF < NaF'},{html:'NaF < HF < HCl < F₂'},{html:'F₂ < HF < HCl < NaF'}],
+ ex:`<p>Tiers: dispersion only (F₂) < dipole–dipole (HCl) < H-bonding (HF) < ionic (NaF). Real values: −188, −85, 20, 1695 °C. HF out-boils heavier HCl because of H-bonding.</p>`},
+{ch:8,topic:'8C · Polarity and boiling point',ref:'Ch 8 slide 40',type:'single',title:'Multiple choice',
+ prompt:`cis-1,2-dichloroethene and trans-1,2-dichloroethene have the same formula. Which has the higher boiling point, and why?`,
+ opts:[{html:'trans, because it is more symmetric'},{html:'cis, because it is polar and has dipole–dipole forces',c:1},{html:'cis, because it has a higher molar mass'},{html:'trans, because it can hydrogen bond'},{html:'They boil at the same temperature'}],
+ ex:`<p>In cis, both C–Cl dipoles point the same way → polar. In trans, they point opposite ways and cancel → nonpolar. Same mass, so the polar isomer wins: cis 60 °C vs trans 48 °C.</p>`},
+{ch:8,topic:'8C · IMFs and physical properties',ref:'Ch 8 slides 60–66',type:'multi',title:'Select ALL that apply',
+ prompt:`Liquids X and Y have similar structures, but X has <b>stronger</b> intermolecular forces. Compared with Y, liquid X has:`,
+ opts:[{html:'a higher boiling point',c:1},{html:'a higher viscosity',c:1},{html:'a higher surface tension',c:1},{html:'a lower vapor pressure',c:1},{html:'a higher vapor pressure'},{html:'a lower melting point'}],
+ ex:`<p>Stronger IMFs raise bp, mp, viscosity and surface tension. <b>Vapor pressure goes the other way</b>: fewer molecules escape, so it's lower.</p>`},
+{ch:8,topic:'8C · Phase at room temperature',ref:'Ch 8 slides 70–71',type:'match',title:'Matching',
+ prompt:`Predict the phase of each substance at room temperature (25 °C).`,
+ visual:`<div class="tbl"><table><thead><tr><th>Compound</th><th>Melting point (°C)</th><th>Boiling point (°C)</th></tr></thead><tbody>
+ <tr><td>Ethanol</td><td>−114</td><td>78</td></tr><tr><td>Naphthalene</td><td>80</td><td>218</td></tr><tr><td>Propane</td><td>−188</td><td>−42</td></tr><tr><td>Acetone</td><td>−95</td><td>56</td></tr></tbody></table></div>`,
+ choices:PH,rows:[['Ethanol','liquid'],['Naphthalene','solid'],['Propane','gas'],['Acetone','liquid']],
+ ex:`<p>Below mp → solid; between mp and bp → liquid; above bp → gas. Naphthalene's mp (80) is above 25, so solid (it's mothballs). Propane's bp (−42) is below 25, so gas.</p>`},
+{ch:8,topic:'8C · Vapor pressure',ref:'Ch 8 slides 62–66',type:'single',title:'Multiple choice',
+ prompt:`At the same temperature, which liquid has the <b>highest vapor pressure</b>?`,
+ opts:[{html:`water, ${F('H2O')}`},{html:`ethanol, ${F('CH3CH2OH')}`},{html:`diethyl ether, ${F('CH3CH2OCH2CH3')}`,c:1},{html:`1-butanol, ${F('CH3CH2CH2CH2OH')}`}],
+ ex:`<p>Highest vapor pressure = weakest IMFs. Diethyl ether has O but <b>no O–H</b>, so no H-bonding (dipole–dipole + dispersion only). The other three all H-bond.</p>`},
+{ch:8,topic:'8C · Boiling point and pressure',ref:'Ch 8 slides 70–74',type:'single',title:'Multiple choice',
+ prompt:`At high altitude, water boils at a lower temperature than at sea level because:`,
+ opts:[{html:'the IMFs in water are weaker at high altitude'},{html:'the external pressure is lower, so the vapor pressure reaches it at a lower temperature',c:1},{html:'there is less oxygen in the air'},{html:'water’s vapor pressure decreases at high altitude'}],
+ ex:`<p>A liquid boils when its vapor pressure equals the external pressure. Lower air pressure on a mountain → reached at a lower temperature → food cooks more slowly. A pressure cooker does the opposite.</p>`},
+{ch:8,topic:'8C · Temperature effects',ref:'Ch 8 slides 59, 65',type:'multi',title:'Select ALL that apply',
+ prompt:`As the temperature of a liquid increases:`,
+ opts:[{html:'its vapor pressure increases',c:1},{html:'its viscosity decreases',c:1},{html:'its vapor pressure decreases'},{html:'its viscosity increases'},{html:'its intermolecular forces turn into covalent bonds'}],
+ ex:`<p>More kinetic energy → more molecules escape (higher vapor pressure) and molecules slide past each other more easily (lower viscosity). Water's viscosity drops from 1.00 to 0.35 × 10⁻³ N·s/m² between 20 and 80 °C.</p>`},
+{ch:8,topic:'8B · Dispersion forces',ref:'Ch 8 slides 18–20',type:'single',title:'Multiple choice',
+ prompt:`At room temperature, F₂ is a gas but I₂ is a solid. The best explanation is:`,
+ opts:[{html:'I₂ is polar and F₂ is nonpolar'},{html:'I₂ has more electrons, so its dispersion forces are stronger',c:1},{html:'I₂ forms hydrogen bonds'},{html:'F₂ has a stronger covalent bond'},{html:'I₂ is ionic'}],
+ ex:`<p>Both are nonpolar, so dispersion is the only IMF. I has many more electrons and a larger, more polarizable cloud → stronger temporary dipoles → much stronger dispersion. The covalent bond strength inside the molecule doesn't control the phase.</p>`}
+];
+/* ================== slots: one per question type ==================
+   o = index of the original question (seed 0), oc = which case the original is */
+const C=(n,g)=>[n,g];
+const SLOTS=[
+ {ch:6,sec:'6A',o:0,oc:2,h:H6.cfgEl,cases:[C('s-block element',gCfgEl(SBLK)),C('p-block, periods 2–3',gCfgEl(PB23)),C('p-block with a filled d (periods 4–5)',gCfgEl(PB45)),C('Transition metal',gCfgEl(DBLK)),C('Aufbau exception (Cr, Cu, Mo, Ag)',gCfgEl(EXZ)),C('Full (uncondensed) configuration',gCfgEl([11,12,13,14,15,16,17,19,20,21,22,23,25,26],true))]},
+ {ch:6,sec:'6A',o:1,oc:0,h:H6.orb,cases:[C('Period 2 p-block',gOrb('p2')),C('Periods 3–4 p-block',gOrb('p3')),C('Transition metal (4s + 3d)',gOrb('d'))]},
+ {ch:6,sec:'6A',o:2,oc:2,h:H6.ta,cases:[C('One rule broken',gTA('one')),C('Two rules broken',gTA('two')),C('Three rules broken',gTA('three')),C('Wrong electron count',gTA('count')),C('Fully correct diagram',gTA('correct'))]},
+ {ch:6,sec:'6A',o:3,oc:1,h:H6.exc,cases:[C('Cr / Mo (half-full d⁵)',gExc('cr')),C('Cu / Ag (full d¹⁰)',gExc('cu')),C('Regular transition metal',gExc('tm')),C('p-block with a filled d',gExc('p'))]},
+ {ch:6,sec:'6A',o:4,oc:2,h:H6.val,cases:[C('s-block',gVal(SBLK)),C('p-block, periods 2–3',gVal(PB23)),C('p-block with a filled d',gVal(PB45))]},
+ {ch:6,sec:'6A',o:5,oc:0,h:H6.ion,cases:[C('Transition-metal cation',gIon(TMI)),C('d¹⁰ cation (diamagnetic)',gIon(D10I)),C('Main-group ion',gIon(MGI))]},
+ {ch:6,sec:'6A',o:6,oc:0,h:H6.exs,cases:[C('Spot the excited state',gExcited)]},
+ {ch:6,sec:'6A',o:7,oc:0,h:H6.nl,cases:[C('Main-group cation',gNL(MGI.filter(x=>x[1]>0))),C('Main-group anion',gNL(MGI.filter(x=>x[1]<0))),C('Transition-metal cation (d electrons)',gNL(TMI,true))]},
+ {ch:6,sec:'6A',o:null,oc:0,topic:'6A · Configuration ↔ periodic table position',ref:'Light & Atoms sheet, Part 4 (blocks of the table)',h:H6.pos,cases:[C('s-block',gPos('s')),C('p-block',gPos('p')),C('d-block',gPos('d')),C('Metal, nonmetal or metalloid',gPos('region'))]},
+ {ch:6,sec:'6B',o:8,oc:2,h:H6.rad,cases:[C('Same period',gRad('period')),C('Same group',gRad('group')),C('Mixed period and group',gRad('mixed'))]},
+ {ch:6,sec:'6B',o:9,oc:0,h:H6.ie,cases:[C('Across a period (with exceptions)',gIE('period')),C('Down a group',gIE('group')),C('Mixed',gIE('mixed'))]},
+ {ch:6,sec:'6B',o:null,oc:0,topic:'6B · Electronegativity, metallic character, Z<sub>eff</sub>',ref:'Light & Atoms sheet, Part 6',h:H6.tr,cases:[C('Electronegativity',gTrend('en')),C('Metallic character',gTrend('metal')),C('Effective nuclear charge',gTrend('zeff'))]},
+ {ch:6,sec:'6B',o:10,oc:1,h:H6.sie,cases:[C('1–2 valence electrons',gSIE([1,2])),C('3 valence electrons',gSIE([3])),C('4–5 valence electrons',gSIE([4,5]))]},
+ {ch:6,sec:'6B',o:11,oc:0,h:H6.iso,cases:[C('Isoelectronic series',gIso('iso')),C('Same element, different charges',gIso('charge'))]},
+ {ch:6,sec:'6B',o:12,oc:0,h:H6.ea,cases:[C('Half-filled p (Group 5A)',gEA('5A')),C('Full s (Group 2A)',gEA('2A')),C('Most favorable EA',gEA('best'))]},
+ {ch:6,sec:'6B',o:13,oc:0,h:H6.ox,cases:[C('Acidic oxide',gOx('acid')),C('Basic oxide',gOx('base')),C('Amphoteric oxide',gOx('amph'))]},
+ {ch:6,sec:'6B',o:14,oc:0,h:H6.sh,cases:[C('2s vs 2p (penetration)',gSh(0)),C('One-electron atoms',gSh(1)),C('Z_eff across a period',gSh(2)),C('Which electrons shield',gSh(3)),C('Why 4s fills before 3d',gSh(4))]},
+ {ch:7,sec:'7A',o:15,oc:0,h:H7.lew,cases:[C('Unpaired dots on an atom',gLew('atom')),C('Dots on an ion',gLew('ion'))]},
+ {ch:7,sec:'7A',o:null,oc:0,topic:'7B · Ion formation and electron transfer',ref:'Bonding sheet, Part 2',h:H7.ionf,cases:[C('Formula of an ionic compound',gIonF('formula')),C('Electrons transferred',gIonF('e'))]},
+ {ch:7,sec:'7A',o:null,oc:0,topic:'7A · Ionic, covalent or metallic bonding',ref:'Bonding sheet, Part 1',h:H7.btype,cases:[C('Ionic',gBType('ionic')),C('Covalent',gBType('covalent')),C('Metallic',gBType('metallic'))]},
+ {ch:7,sec:'7B',o:16,oc:2,h:H7.lat,cases:[C('Charge decides',gLat('charge')),C('Size decides',gLat('size')),C('Charge, then size',gLat('both'))]},
+ {ch:7,sec:'7B',o:17,oc:0,h:H7.lat,cases:[C('Highest melting point',gLat('any','high')),C('Lowest melting point',gLat('any','low'))]},
+ {ch:7,sec:'7B',o:18,oc:1,h:H7.coul,cases:[C('Force, 1+ and 1− ions',gCoul('f1')),C('Force, higher charges',gCoul('f2')),C('Potential energy (E = kq₁q₂/r)',gCoul('E'))]},
+ {ch:7,sec:'7B',o:19,oc:0,h:H7.bh,cases:[C('Lattice energy, MX salt',gBH('mx')),C('Lattice energy, MX₂ salt',gBH('mx2')),C('Find ΔH<sub>f</sub>°',gBH('hf')),C('Find the electron affinity',gBH('ea'))]},
+ {ch:7,sec:'7C',o:20,oc:1,h:H7.form,cases:[C('Center with valence 2',gForm(2)),C('Center with valence 3',gForm(3)),C('Center with valence 4',gForm(4)),C('Double bonds needed (CO₂, CS₂)',gForm('d'))]},
+ {ch:7,sec:'7C',o:21,oc:1,h:H7.vc,cases:[C('Neutral molecule',gVC('neutral')),C('Anion',gVC('anion')),C('Cation',gVC('cation'))]},
+ {ch:7,sec:'7D',o:22,oc:0,h:H7.bl,cases:[C('Bond length',gBL('len')),C('Bond energy',gBL('en'))]},
+ {ch:7,sec:'7D',o:23,oc:1,h:H7.den,cases:[C('Mixed bonds',gDEN('mixed')),C('Near the 0.4 / 1.8 cutoffs',gDEN('edge'))]},
+ {ch:7,sec:'7E',o:24,oc:0,h:H7.oct,cases:[C('Octet exceptions',gOct)]},
+ {ch:7,sec:'7E',o:25,oc:1,h:H7.lp,cases:[C('Octet central atom',gLP('oct')),C('Expanded-octet central atom',gLP('exp'))]},
+ {ch:7,sec:'7F',o:26,oc:0,h:H7.fc,cases:[C('Central atom',gFC('center')),C('End atom',gFC('end')),C('Ion structures',gFC('ion'))]},
+ {ch:7,sec:'7F',o:null,oc:0,topic:'7F · Best resonance structure by formal charge',ref:'Prof cheat sheet: “Choosing the BEST Resonance Structure”',h:H7.best,cases:[C('Choose the best structure',gBest)]},
+ {ch:7,sec:'7F',o:27,oc:0,h:H7.bo,cases:[C('3 resonance structures (4/3)',gBO('3')),C('2 resonance structures (3/2)',gBO('2'))]},
+ {ch:7,sec:'7G',o:28,oc:2,h:H7.shape,cases:[C('2–4 electron groups',gShape('low')),C('5–6 electron groups',gShape('high')),C('Mixed',gShape('mix'))]},
+ {ch:7,sec:'7G',o:null,oc:0,topic:'7G · Electron geometry vs molecular shape',ref:'Bonding sheet, Part 8 Box 2',h:H7.eg,cases:[C('Center has lone pairs',gEG('lp')),C('No lone pairs',gEG('none'))]},
+ {ch:7,sec:'7G',o:29,oc:2,h:H7.ang,cases:[C('2 electron groups (180°)',gAng(2)),C('3 electron groups (120°)',gAng(3)),C('4 electron groups (109.5°)',gAng(4)),C('6 electron groups (90°)',gAng(6))]},
+ {ch:7,sec:'7H',o:30,oc:0,h:H7.pol,cases:[C('Polar or nonpolar',gPol)]},
+ {ch:7,sec:'7I',o:31,oc:2,h:H7.sp,cases:[C('Small molecules',gSP('small')),C('Organic, double bonds',gSP('dbl')),C('Organic, triple bonds',gSP('tri'))]},
+ {ch:7,sec:'7J',o:32,oc:0,h:H7.hyb,cases:[C('Central atoms',gHyb('center')),C('Atoms in organic molecules',gHyb('org'))]},
+ {ch:7,sec:'7I',o:33,oc:0,h:H7.ov,cases:[C('C–H σ bond',gOvl('ch')),C('C–C / C–N σ bond',gOvl('cc')),C('π bond',gOvl('pi'))]},
+ {ch:7,sec:'7J',o:34,oc:0,h:H7.mo,cases:[C('O₂ and its ions',gMO('o2')),C('N₂ and its ions',gMO('n2')),C('B₂, C₂, F₂, Li₂',gMO('other'))]},
+ {ch:8,sec:'8A',o:35,oc:0,h:H8.intra,cases:[C('Physical change',gIntra('phys')),C('Chemical change',gIntra('chem'))]},
+ {ch:8,sec:'8B',o:36,oc:0,h:H8.pic,cases:[C('HCl / HBr (dipole–dipole)',gPic('dd')),C('HF (hydrogen bonding)',gPic('hb'))]},
+ {ch:8,sec:'8B',o:37,oc:0,h:H8.imf,cases:[C('Main IMF',gIMF)]},
+ {ch:8,sec:'8B',o:38,oc:0,h:H8.hb,cases:[C('Hydrogen bonding',gHB)]},
+ {ch:8,sec:'8C',o:39,oc:0,h:H8.bp,cases:[C('Different IMF tiers',gBP('tiers')),C('Dispersion only, different size',gBP('disp')),C('H-bonding vs heavier molecules',gBP('hb'))]},
+ {ch:8,sec:'8C',o:40,oc:0,h:H8.iso,cases:[C('Polarity (cis/trans)',gIsoB('pol')),C('Shape (surface area)',gIsoB('shape')),C('Hydrogen bonding',gIsoB('hb'))]},
+ {ch:8,sec:'8C',o:41,oc:0,h:H8.prop,cases:[C('Stronger IMFs',gProp('strong')),C('Weaker IMFs',gProp('weak'))]},
+ {ch:8,sec:'8C',o:42,oc:0,h:H8.phase,cases:[C('Room temperature',gPhase('room')),C('Another temperature',gPhase('other'))]},
+ {ch:8,sec:'8C',o:43,oc:0,h:H8.vp,cases:[C('Highest vapor pressure',gVP('high')),C('Lowest vapor pressure',gVP('low'))]},
+ {ch:8,sec:'8C',o:44,oc:0,h:H8.bpp,cases:[C('High altitude',gBPP(0)),C('Pressure cooker',gBPP(1)),C('Normal boiling point',gBPP(2)),C('Boiling under vacuum',gBPP(3))]},
+ {ch:8,sec:'8C',o:45,oc:0,h:H8.temp,cases:[C('Temperature rises',gTemp('up')),C('Temperature drops',gTemp('down'))]},
+ {ch:8,sec:'8B',o:46,oc:0,h:H8.disp,cases:[C('Halogens',gDsp('hal')),C('Noble gases',gDsp('nob')),C('Hydrocarbons',gDsp('hc'))]}];
+/* slip catchers for the original numeric questions */
+const OTRAPS={4:[[[15,'You counted the filled d subshell. For a main-group element the (n−1)d¹⁰ is core, not valence.'],[3,'You counted only the p electrons. The 5s electrons are valence too.'],[51,'That is the total electron count (Z), not the valence count.']]],
+ 18:[[[KE*QE*QE/(205e-12)**2,'You used 1.602 × 10⁻¹⁹ C for both ions. Multiply by each ion’s charge number (2).'],[KE*(2*QE)**2/205**2,'You plugged r in pm. Convert first: 1 pm = 10⁻¹² m.'],[KE*(2*QE)**2/205e-12,'You forgot to square r. Force uses r².'],[KE*(2*QE)**2/(205e-9)**2,'Wrong conversion: pm → m is 10⁻¹², not 10⁻⁹.']]],
+ 19:[[[89+419+243-349+437,'You used the full Cl₂ bond energy. One Cl per formula unit needs ½BE.'],[89+419+121.5-349-437,'Sign slip: subtracting a negative ΔH<sub>f</sub>° means adding 437.'],[-717.5,'Sign: lattice energy here is the energy to separate the solid, so it is positive.']]],
+ 21:[[[24,'You left out the charge. Add 1 e⁻ per negative charge.'],[22,'Charge sign slip: a 2− ion has 2 <b>extra</b> electrons (add them).'],[14,'Multiply by the number of each atom: 3 O atoms.']]],
+ 25:[[[11,'That counts every bond and lone pair in the whole molecule. Only the Cl lone pairs count.'],[4,'That is the number of lone-pair <b>electrons</b>. Divide by 2.']]],
+ 26:[[[-1,'Sign slip. FC = V − N − B.'],[2,'You counted the lone pair as 1. N counts electrons: one pair = 2.'],[-2,'You counted bonds as electrons. B counts lines (3 here).']]],
+ 27:[[[2,'That is the double bond in one resonance structure. Average over all three C–O bonds.'],[1,'That is a single bond in one structure. The real bonds are all equal, in between.']]],
+ 31:[[[9,'You counted π bonds as σ too. Each bond has exactly one σ.']],[[4,'Triple bond = 1 σ + 2 π; double = 1 σ + 1 π.']]]};
+ORIGQ.forEach((q,i)=>{if(OTRAPS[i])q.fields.forEach((f,j)=>{f.traps=OTRAPS[i][j]||[];});});
+SLOTS.forEach((s,i)=>{if(s.o!=null){s.topic=ORIGQ[s.o].topic;s.ref=ORIGQ[s.o].ref;}});
+SLOTS.forEach(s=>{s.cases.forEach(c=>{c[2]=0;});});
+
+/* ================== page engine ================== */
+const L='ABCDEFGHIJ';
+const form=document.getElementById('quiz');
+const CH={6:['ch6','Chapter 6 · Electronic structure & periodic trends','Study guide sections 6A–6B'],7:['ch7','Chapter 7 · Chemical bonding & molecular structure','Study guide sections 7A–7J, plus MO theory from the study tips'],8:['ch8','Chapter 8 · Molecules & states of matter','Study guide sections 8A–8C']};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const strip=s=>String(s).replace(/<[^>]+>/g,'');
+const newSeed=()=>1+Math.floor(Math.random()*2e9);
+const NS=SLOTS.length;
+const SECN={'6A':'6A Electron configurations','6B':'6B Periodic trends','7A':'7A Bond types & Lewis symbols','7B':'7B Ionic bonding & lattice energy','7C':'7C Covalent bonding & formulas','7D':'7D Bond properties & polarity','7E':'7E Lewis structures & exceptions','7F':'7F Formal charge & resonance','7G':'7G Molecular geometry','7H':'7H Molecular polarity','7I':'7I Valence bond theory','7J':'7J Hybridization & MO theory','8A':'8A Intra- vs intermolecular','8B':'8B Types of IMFs','8C':'8C IMFs & physical properties'};
+const META='chem3-meta-v2',ANS0='chem3-ans-v2';
+let KEY=ANS0;
+let seeds=Array(NS).fill(0),vers=Array(NS).fill(0),cases=Array(NS).fill(null),done={};
+try{const m=JSON.parse(localStorage.getItem(META)||'null');if(m&&m.seeds&&m.seeds.length===NS){seeds=m.seeds;vers=m.vers;cases=m.cases||cases;done=m.done||{};}}catch(e){}
+function saveMeta(){try{localStorage.setItem(META,JSON.stringify({seeds,vers,cases,done}));}catch(e){}}
+const randCase=(si,seed)=>Math.floor(mkRng(seed*7+13)()*SLOTS[si].cases.length);
+function genQ(si,seed,ci){
+  const sl=SLOTS[si];let q;
+  if(!seed){q=sl.o!=null?{...ORIGQ[sl.o]}:sl.cases[0][1](mkRng(424242+si));}
+  else{if(ci==null)ci=randCase(si,seed);q=sl.cases[ci][1](mkRng(seed*1000003+si));}
+  q.si=si;q.ch=sl.ch;q.topic=sl.topic;q.ref=sl.ref;q.sec=sl.sec;if(!q.hints)q.hints=sl.h;return q;}
+function caseOf(i){const si=SIM?SIM.spec[i].slot:i;const sd=SIM?SIM.spec[i].seed:seeds[i];if(!sd)return SLOTS[si].oc;const c=SIM?SIM.spec[i].ci:cases[i];return c??randCase(si,sd);}
+let SIM=null;
+let Q=SLOTS.map((_,i)=>genQ(i,seeds[i],cases[i]));
+let graded={};let examDone=false;
+
+/* ---------- rendering ---------- */
+function bodyHTML(q,i){
+  if(q.type==='match')return `<div class="fields">${q.rows.map((r,j)=>`<div class="frow"><label for="q${i}r${j}">${j+1}. ${r[0]}</label><select id="q${i}r${j}"><option value="">Select match</option>${q.choices.map(c=>`<option>${c}</option>`).join('')}</select><span class="ans" id="q${i}r${j}a"></span></div>`).join('')}</div>`;
+  if(q.type==='numeric'||q.type==='text')return `<div class="fields">${q.fields.map((f,j)=>`<div class="frow"><label for="q${i}f${j}">${f.label}</label><input type="text" id="q${i}f${j}" autocomplete="off" spellcheck="false" ${q.type==='numeric'?'inputmode="decimal"':''}><span class="ans" id="q${i}f${j}a"></span></div><div class="slip" id="q${i}f${j}s" hidden></div>`).join('')}${q.hint?`<span class="hint">${q.hint}</span>`:''}</div>`;
+  const t=q.type==='single'?'radio':'checkbox';
+  return `<div class="opts${q.grid?' grid':''}">${q.opts.map((o,j)=>`<label class="opt" for="q${i}o${j}"><input type="${t}" id="q${i}o${j}" name="q${i}" value="${j}"><span class="k">${L[j]}.</span><span class="body"><span>${o.html}</span><span class="tag"></span></span></label>`).join('')}</div>`;}
+function caseHTML(i){const si=SIM?SIM.spec[i].slot:i;const cs=SLOTS[si].cases;if(cs.length<2)return '1 case';const ci=caseOf(i);const nd=cs.filter((_,k)=>done[si+':'+k]).length;
+  return `Case ${ci+1} of ${cs.length}: <b>${cs[ci][0]}</b>${done[si+':'+ci]?' ✓':''} · ${nd} of ${cs.length} cases done`;}
+function qHTML(q,i){
+  const si=q.si,cs=SLOTS[si].cases,ci=caseOf(i);
+  const tools=SIM?'':`<div class="qtools"><button type="button" class="small nv" data-i="${i}">New version</button><button type="button" class="small og" data-i="${i}" ${seeds[i]?'':'hidden'}>Original</button>${cs.length>1?`<button type="button" class="small nc" data-i="${i}">New case</button><select class="cs" data-i="${i}" aria-label="Choose a case">${cs.map((c,k)=>`<option value="${k}" ${k===ci?'selected':''}>${done[si+':'+k]?'✓ ':''}${k+1}. ${strip(c[0])}</option>`).join('')}</select>`:''}</div><p class="qcase">${caseHTML(i)}</p>`;
+  return `<section class="q" id="qq${i}"><div class="qhead"><div><span class="qnum">Question ${i+1}</span> <span class="qtype">· ${q.title} · ${esc(strip(q.topic||''))}</span>${SIM?'':` <span class="qver">· ${seeds[i]?`Version ${vers[i]+1}`:'Original'}</span>`}</div><span class="qscore" id="qs${i}"></span></div>
+   ${tools}
+   <p class="prompt">${q.prompt}</p>${q.visual||''}${bodyHTML(q,i)}
+   <div class="phelp"><button type="button" class="small h1" data-i="${i}">Recognize it</button><button type="button" class="small h2" data-i="${i}">Set it up</button><button type="button" class="small primary chk" data-i="${i}">Check</button><button type="button" class="small redo" data-i="${i}" hidden>Try again</button></div>
+   <div class="hintbox" id="hb${i}a" hidden><b>Recognize it:</b> ${q.hints[0]}</div><div class="hintbox" id="hb${i}b" hidden><b>Set it up:</b> ${q.hints[1]}</div>
+   <div class="explain" id="ex${i}" hidden></div></section>`;}
+function render(){
+  let html='',last=0;
+  Q.forEach((q,i)=>{if(!SIM&&q.ch!==last){last=q.ch;html+=`<h2 class="sec" id="${CH[q.ch][0]}">${CH[q.ch][1]}</h2><p class="secsub">${CH[q.ch][2]}</p>`;}html+=qHTML(q,i);});
+  form.innerHTML=html;graded={};restore();applyMode();updateAnswered();}
+function answered(i){const q=Q[i];
+  if(q.type==='match')return q.rows.some((_,j)=>document.getElementById(`q${i}r${j}`).value);
+  if(q.type==='numeric'||q.type==='text')return q.fields.some((_,j)=>document.getElementById(`q${i}f${j}`).value.trim());
+  return !!form.querySelector(`input[name="q${i}"]:checked`);}
+const countAnswered=()=>Q.filter((_,i)=>answered(i)).length;
+function updateAnswered(){document.getElementById('answered').textContent=`${countAnswered()} / ${Q.length}`;}
+function save(){try{const st={};form.querySelectorAll('input,select').forEach(el=>{if(!el.id)return;st[el.id]=(el.type==='radio'||el.type==='checkbox')?el.checked:el.value;});st.__mode=modeP();localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+function restore(){try{const st=JSON.parse(localStorage.getItem(KEY)||'{}');Object.entries(st).forEach(([id,v])=>{if(id==='__mode'){if(!SIM)document.getElementById(v?'modePractice':'modeExam').checked=true;return;}const el=document.getElementById(id);if(!el)return;if(el.type==='radio'||el.type==='checkbox')el.checked=!!v;else el.value=v;});}catch(e){}}
+const modeP=()=>!SIM&&document.getElementById('modePractice').checked;
+function applyMode(){const p=modeP();form.querySelectorAll('.phelp').forEach(x=>x.hidden=!p);if(!p)form.querySelectorAll('.hintbox').forEach(x=>x.hidden=true);
+  document.getElementById('modeHint').textContent=p?'Practice: check one question at a time, with hints and the slip catcher.':'Exam: hints are locked; grade everything at the end.';}
+
+/* ---------- grading + slip catcher ---------- */
+function parseNum(s){s=s.trim().replace(/\s/g,'').replace(/[−–]/g,'-').replace(/,/g,'');
+  if(/^[-+]?\d+(\.\d+)?\/\d+(\.\d+)?$/.test(s)){const [a,b]=s.split('/');return parseFloat(a)/parseFloat(b);}
+  s=s.replace(/(?:[x×*]10\^?|E)/i,'e');const n=Number(s);return Number.isFinite(n)?n:NaN;}
+const fmtNum=v=>Math.abs(v)<1e-3||Math.abs(v)>=1e5?v.toExponential(2).replace('e',' × 10^'):String(Math.round(v*100)/100);
+const fmt=s=>String(Number(s.toFixed(2)));
+function slipFor(f,v){const tol=f.rel!=null?Math.abs(f.ans)*f.rel:(f.abs||0)+1e-9;const near=(a,b,t)=>Math.abs(a-b)<=Math.max(t,Math.abs(b)*0.03);
+  for(const [tv,msg] of (f.traps||[]))if(near(v,tv,tol))return msg;
+  if(f.ans!==0&&near(v,-f.ans,tol))return 'Sign slip: the size is right but the sign is flipped.';
+  if(f.ans!==0&&v!==0&&Math.sign(v)===Math.sign(f.ans)){const k=Math.log10(v/f.ans);const kr=Math.round(k);if(kr!==0&&Math.abs(k-kr)<0.02)return `Off by a factor of 10<sup>${kr<0?MINUS+(-kr):kr}</sup>: check the unit conversion (pm → m is 10⁻¹²) and how you typed the exponent.`;}
+  if(f.rel!=null&&Math.abs(v-f.ans)<=Math.abs(f.ans)*0.1)return 'Close but outside 3%: likely rounded too early. Keep full digits until the last step.';
+  return null;}
+function gradeQ(i){const q=Q[i];let s=0;
+  if(q.type==='match'){let ok=0;q.rows.forEach((r,j)=>{const el=document.getElementById(`q${i}r${j}`);const good=el.value===r[1];if(good)ok++;el.classList.add(good?'right-f':'wrong-f');el.disabled=true;if(!good)document.getElementById(`q${i}r${j}a`).textContent=`Answer: ${r[1]}`;});s=ok/q.rows.length;}
+  else if(q.type==='numeric'||q.type==='text'){let ok=0;
+    q.fields.forEach((f,j)=>{const el=document.getElementById(`q${i}f${j}`);let good=false,slip=null;const raw=el.value.trim();
+      if(q.type==='text'){const v=raw.toLowerCase();good=f.accept.includes(v);if(!good&&v){const t=(f.traps||[]).find(x=>x[0]===v);if(t)slip=t[1];}}
+      else{const v=parseNum(raw);if(!isNaN(v)){good=f.rel!=null?Math.abs(v-f.ans)<=Math.abs(f.ans)*f.rel:Math.abs(v-f.ans)<=(f.abs||0)+1e-9;if(!good)slip=slipFor(f,v);}else if(raw)slip='That is not a number the grader can read. Use forms like 2.5e-8, 2.5x10^-8 or 4/3.';}
+      if(good)ok++;el.classList.add(good?'right-f':'wrong-f');el.disabled=true;
+      if(!good)document.getElementById(`q${i}f${j}a`).textContent=`Answer: ${q.type==='text'?f.accept[0].charAt(0).toUpperCase()+f.accept[0].slice(1):fmtNum(f.ans)}`;
+      const sb=document.getElementById(`q${i}f${j}s`);if(slip){sb.innerHTML=`<b>Slip catcher:</b> ${slip}`;sb.hidden=false;}});
+    s=ok/q.fields.length;}
+  else{const n=q.opts.filter(o=>o.c).length;let c=0,w=0;
+    q.opts.forEach((o,j)=>{const inp=document.getElementById(`q${i}o${j}`),lab=inp.closest('.opt'),tag=lab.querySelector('.tag');inp.disabled=true;
+      if(inp.checked&&o.c){c++;lab.classList.add('right');tag.textContent='✓ Correct pick';}else if(inp.checked&&!o.c){w++;lab.classList.add('wrong');tag.textContent='✗ Wrong pick';}else if(!inp.checked&&o.c){lab.classList.add('missed');tag.textContent='Missed: this was correct';}});
+    s=q.type==='single'?(c===1&&w===0?1:0):Math.max(0,(c-w)/n);}
+  graded[i]=s;const ex=document.getElementById(`ex${i}`);ex.innerHTML=q.ex+(q.ref?`<p class="ref">Review: ${q.ref}</p>`:'');ex.hidden=false;
+  document.getElementById(`qs${i}`).textContent=`${fmt(s)} / 1`;const el=document.getElementById(`qq${i}`);el.classList.remove('graded-full','graded-zero','graded-part');el.classList.add(s===1?'graded-full':s===0?'graded-zero':'graded-part');
+  el.querySelector('.chk').hidden=true;el.querySelector('.redo').hidden=SIM?true:false;
+  if(s===1&&!SIM){const si=q.si,k=si+':'+caseOf(i);if(!done[k]){done[k]=1;saveMeta();const p=el.querySelector('.qcase');if(p)p.innerHTML=caseHTML(i);const o=el.querySelector(`select.cs option[value="${caseOf(i)}"]`);if(o&&!o.textContent.startsWith('✓'))o.textContent='✓ '+o.textContent;}}
+  return s;}
+function refresh(){const ks=Object.keys(graded);if(!ks.length){document.getElementById('score').textContent='–';return;}const t=ks.reduce((a,k)=>a+graded[k],0);document.getElementById('score').textContent=`${fmt(t)} / ${ks.length} checked`;}
+function grade(){Q.forEach((_,i)=>{if(graded[i]===undefined)gradeQ(i);});examDone=true;
+  let total=0;const per={},sec={};const missed=[];
+  Q.forEach((q,i)=>{const s=graded[i];total+=s;(per[q.ch]=per[q.ch]||[0,0]);per[q.ch][0]+=s;per[q.ch][1]++;const st=strip(q.topic||'').split(' · ')[0];(sec[q.sec]=sec[q.sec]||[0,0,new Set()]);sec[q.sec][0]+=s;sec[q.sec][1]++;sec[q.sec][2].add(strip(q.topic||''));if(s<1)missed.push(i);});
+  const pct=Math.round(total/Q.length*100);document.getElementById('score').textContent=`${fmt(total)} / ${Q.length} (${pct}%)`;
+  const sum=document.getElementById('summary');sum.hidden=false;
+  const chRow=c=>{if(!per[c])return '';const [g,n]=per[c];const p=Math.round(g/n*100);return `<div class="chrow"><b>Chapter ${c}</b><span class="mono">${fmt(g)} / ${n} · ${p}%</span><div class="meter"><span style="width:${p}%"></span></div></div>`;};
+  const weak=Object.entries(sec).filter(([,v])=>v[0]/v[1]<0.7).sort((a,b)=>a[1][0]/a[1][1]-b[1][0]/b[1][1]);
+  let simTxt='';if(SIM){const u=SIM.used??Math.min(SIM.mins*60,Math.round((Date.now()-SIM.start)/1000));simTxt+=`<p style="margin:0"><b>Time used: ${Math.floor(u/60)}:${String(u%60).padStart(2,'0')} of ${SIM.mins} min.</b></p>`;
+    if(SIM.pq){const out=SIM.out||[];const by={};out.forEach(i=>{by[Q[i].sec]=(by[Q[i].sec]||0)+1;});simTxt+=out.length?`<p style="margin:0"><b>Ran out of time on ${out.length} of ${Q.length}:</b> ${out.map(i=>`<a href="#qq${i}">Q${i+1}</a>`).join(', ')}. Where the clock caught you: ${Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`${SECN[t]||t} (${n})`).join(', ')}. Those are the types to speed up on, separate from the ones you got wrong.</p>`:`<p style="margin:0"><b>You beat the clock on all ${Q.length} questions.</b></p>`;}}
+  sum.innerHTML=`<h2>${pct}% · ${fmt(total)} of ${Q.length} points</h2>${simTxt}
+   <div class="chrows">${chRow(6)}${chRow(7)}${chRow(8)}</div>
+   ${weak.length?`<p style="margin:0">Review first (under 70%): ${weak.map(([k,v])=>`<b>${SECN[k]||k}</b> (${Math.round(v[0]/v[1]*100)}%)`).join(', ')}.</p>`:'<p style="margin:0">Every study-guide section is at 70% or better.</p>'}
+   ${missed.length?`<div><b>Questions to redo</b><ul class="misslist">${missed.map(i=>`<li><a href="#qq${i}">Q${i+1}</a> · ${Q[i].topic||''}${Q[i].ref?` → ${Q[i].ref}`:''}</li>`).join('')}</ul><p style="margin:6px 0 0">${SIM?'Exit the simulation and use <b>New case</b> on those types to drill them.':'Press <b>New version</b> on any of these for a fresh one, or <b>New case</b> to drill a different case.'}</p></div>`:'<p style="margin:0">Every question fully correct.</p>'}`;
+  stopTimer();document.getElementById('gradeBtn').disabled=true;document.getElementById('missBtn').hidden=missed.length===0;document.getElementById('status').textContent='';
+  sum.scrollIntoView({block:'start'});}
+
+/* ---------- per-question controls ---------- */
+function regen(i,seed,ci){const keep=caseOf(i);cases[i]=!seed?null:ci!==undefined?ci:keep;seeds[i]=seed;if(seed)vers[i]++;Q[i]=genQ(i,seed,cases[i]);
+  delete graded[i];const el=document.getElementById(`qq${i}`);el.outerHTML=qHTML(Q[i],i);saveMeta();save();applyMode();updateAnswered();refresh();}
+function redo(i){delete graded[i];const el=document.getElementById(`qq${i}`);el.outerHTML=qHTML(Q[i],i);applyMode();save();updateAnswered();refresh();}
+form.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;
+  if(b.classList.contains('nv'))regen(i,newSeed());
+  else if(b.classList.contains('og'))regen(i,0);
+  else if(b.classList.contains('nc'))regen(i,newSeed(),(caseOf(i)+1)%SLOTS[i].cases.length);
+  else if(b.classList.contains('h1'))document.getElementById(`hb${i}a`).hidden=false;
+  else if(b.classList.contains('h2'))document.getElementById(`hb${i}b`).hidden=false;
+  else if(b.classList.contains('chk')){gradeQ(i);save();refresh();}
+  else if(b.classList.contains('redo'))redo(i);});
+form.addEventListener('change',e=>{if(e.target.classList.contains('cs')){regen(+e.target.dataset.i,newSeed(),+e.target.value);return;}updateAnswered();save();});
+form.addEventListener('input',()=>{updateAnswered();save();});
+document.querySelectorAll('input[name="mode"]').forEach(x=>x.addEventListener('change',()=>{applyMode();save();}));
+let warned=false;
+document.getElementById('gradeBtn').addEventListener('click',()=>{const left=Q.length-countAnswered();
+  if(left>0&&!warned){warned=true;document.getElementById('status').textContent=`${left} question${left>1?'s are':' is'} still unanswered. Press Grade exam again to submit anyway.`;return;}grade();});
+/* ---------- export results (copy to paste into the chat) ---------- */
+function toText(h){h=String(h||'').replace(/<span class="obl">([^<]*)<\/span>/g,' $1 ').replace(/<span class="box">([^<]*)<\/span>/g,'[$1]').replace(/<sup>([^<]*)<\/sup>/g,'^$1').replace(/<sub>([^<]*)<\/sub>/g,'$1')
+  .replace(/<svg[^>]*aria-label="([^"]*)"[\s\S]*?<\/svg>/g,' [picture: $1] ').replace(/<svg[\s\S]*?<\/svg>/g,' [picture] ').replace(/<br\s*\/?>/g,' ').replace(/<\/(p|li|tr)>/g,' ').replace(/<[^>]+>/g,'');
+  const d=document.createElement('textarea');d.innerHTML=h;return d.value.replace(/&nbsp;| /g,' ').replace(/\[\s*\]/g,'[ ]').replace(/\s+/g,' ').trim();}
+function qExport(i){const q=Q[i];const s=graded[i];const out=[];const si=q.si;const cs=SLOTS[si].cases;
+  out.push(`Q${i+1} [${toText(q.topic||'')}]${cs.length>1?` Case: ${toText(cs[caseOf(i)][0])}`:''} · Score ${fmt(s)}/1${SIM&&SIM.out&&SIM.out.includes(i)?' · RAN OUT OF TIME':''}`);
+  out.push(`  Question: ${toText(q.prompt)}${q.visual?` | Shown: ${toText(q.visual)}`:''}`);
+  if(q.type==='match')q.rows.forEach((r,j)=>{const v=document.getElementById(`q${i}r${j}`).value;out.push(`  ${toText(r[0])}: you said "${v||'(blank)'}" | correct "${r[1]}"${v===r[1]?' ✓':' ✗'}`);});
+  else if(q.type==='numeric'||q.type==='text')q.fields.forEach((f,j)=>{const v=document.getElementById(`q${i}f${j}`).value.trim();const sl=document.getElementById(`q${i}f${j}s`);
+    out.push(`  ${toText(f.label)}: you entered "${v||'(blank)'}" | correct ${q.type==='text'?f.accept[0]:fmtNum(f.ans)}${!sl.hidden?` | Slip catcher: ${toText(sl.innerHTML).replace(/^Slip catcher:\s*/,'')}`:''}`);});
+  else{q.opts.forEach((o,j)=>{const ch=document.getElementById(`q${i}o${j}`).checked;if(ch||o.c)out.push(`  ${L[j]}. ${toText(o.html)}${ch?' ← you picked':''}${o.c?' (correct)':''}`);});
+    if(!q.opts.some((o,j)=>document.getElementById(`q${i}o${j}`).checked))out.push('  (no answer picked)');}
+  return out.join('\n');}
+function buildExport(all){const ks=Object.keys(graded).map(Number).sort((a,b)=>a-b);if(!ks.length)return null;
+  const tot=ks.reduce((a,k)=>a+graded[k],0);const miss=ks.filter(k=>graded[k]<1);const list=all?ks:miss;
+  const sec={};ks.forEach(k=>{const q=Q[k];(sec[q.sec]=sec[q.sec]||[0,0]);sec[q.sec][0]+=graded[k];sec[q.sec][1]++;});
+  const head=[`CHEM 1309 Exam 3 practice results (${new Date().toLocaleString()})`,
+    `Mode: ${SIM?`exam simulation (${SIM.pq?fmtT(SIM.pq)+' per question':SIM.mins+' min whole exam'})`:modeP()?'practice':'exam'} · Score ${fmt(tot)} / ${ks.length} (${Math.round(tot/ks.length*100)}%)`,
+    `By section: ${Object.entries(sec).sort().map(([k,v])=>`${SECN[k]||k} ${fmt(v[0])}/${v[1]}`).join('; ')}`,
+    SIM&&SIM.out&&SIM.out.length?`Ran out of time on: ${SIM.out.map(i=>'Q'+(i+1)).join(', ')}`:'',
+    `${all?'All checked questions':'Missed or partly missed questions'} (${list.length}):`].filter(Boolean);
+  return head.join('\n')+'\n\n'+(list.length?list.map(qExport).join('\n\n'):'(none: everything was fully correct)')+'\n\nPlease help me understand the concepts behind the ones I missed.';}
+document.getElementById('exportBtn').addEventListener('click',()=>{const txt=buildExport(false);const w=document.getElementById('exportWrap'),box=document.getElementById('exportBox'),msg=document.getElementById('exportMsg');
+  if(!txt){document.getElementById('status').textContent='Check some questions (or grade the exam) first, then copy the results.';return;}
+  box.value=txt;w.hidden=false;const sel=()=>{box.focus();box.select();};
+  const ok=()=>{msg.innerHTML='<b>Copied.</b> Paste it into the chat with Claude. (It is also below if you want to look it over.)';};
+  const fail=()=>{sel();msg.innerHTML='Your browser blocked automatic copying. The text below is selected: press <b>Ctrl+C</b> (or ⌘C, or long-press → Copy), then paste it into the chat.';};
+  try{navigator.clipboard.writeText(txt).then(ok,fail);}catch(e){fail();}});
+document.getElementById('missBtn').addEventListener('click',e=>{const on=form.classList.toggle('onlymissed');e.target.textContent=on?'Show all questions':'Show only missed';});
+function resetView(){document.getElementById('exportWrap').hidden=true;warned=false;examDone=false;stopTimer();form.classList.remove('onlymissed');document.getElementById('summary').hidden=true;document.getElementById('score').textContent='–';
+  document.getElementById('gradeBtn').disabled=false;const mb=document.getElementById('missBtn');mb.hidden=true;mb.textContent='Show only missed';document.getElementById('status').textContent='';document.getElementById('timer').hidden=true;document.getElementById('timer').classList.remove('low');left=0;}
+document.getElementById('retryBtn').addEventListener('click',()=>{try{localStorage.removeItem(KEY);}catch(e){}resetView();render();window.scrollTo(0,0);});
+function newExam(orig){for(let i=0;i<NS;i++){const sd=orig?0:newSeed();if(sd)vers[i]++;seeds[i]=sd;cases[i]=null;Q[i]=genQ(i,sd,null);}saveMeta();try{localStorage.removeItem(KEY);}catch(e){}resetView();render();window.scrollTo(0,0);}
+document.getElementById('newExamBtn').addEventListener('click',()=>newExam(false));
+document.getElementById('origExamBtn').addEventListener('click',()=>newExam(true));
+
+/* ---------- timer ---------- */
+let tId=null,left=0;
+function show(){const t=document.getElementById('timer');const h=Math.floor(left/3600),m=Math.floor(left%3600/60),s=left%60;t.textContent=left===0?"Time's up":(h?`${h}:${String(m).padStart(2,'0')}`:`${m}`)+`:${String(s).padStart(2,'0')}`;t.classList.toggle('low',left<=(SIM&&SIM.pq?20:300));}
+function stopTimer(){if(tId){clearInterval(tId);tId=null;}}
+document.getElementById('timerBtn').addEventListener('click',e=>{if(tId){stopTimer();e.target.textContent='Resume timer';return;}
+  if(!left)left=60*+document.getElementById('tlen').value;const t=document.getElementById('timer');t.hidden=false;show();e.target.textContent='Pause timer';
+  tId=setInterval(()=>{left--;show();if(left<=0){stopTimer();document.getElementById('status').textContent="Time's up. Finish your current answer, then grade.";}},1000);});
+
+/* ---------- exam simulator ---------- */
+const SIMKEY='chem3-sim',SIMANS='chem3-sim-ans';
+const SIMPLAN={6:7,7:12,8:6};
+function makeSim(){const spec=[];for(const ch of [6,7,8]){const slots=shuf(Math.random,SLOTS.map((s,i)=>i).filter(i=>SLOTS[i].ch===ch));
+  slots.slice(0,SIMPLAN[ch]).forEach(si=>{const seed=newSeed();spec.push({slot:si,seed,ci:Math.floor(Math.random()*SLOTS[si].cases.length)});});}
+  return spec.sort((a,b)=>a.slot-b.slot);}
+function simQ(s){return genQ(s.slot,s.seed,s.ci);}
+function saveSim(){try{SIM?localStorage.setItem(SIMKEY,JSON.stringify(SIM)):localStorage.removeItem(SIMKEY);}catch(e){}}
+const fmtT=s=>s%60?`${+(s/60).toFixed(1)} min`:`${s/60} min`;
+function simUI(on){for(const id of ['newExamBtn','origExamBtn','timerBtn','tlen','retryBtn','simSet','modeBox','drillBox'])document.getElementById(id).hidden=on;
+  document.getElementById('simExit').hidden=!on;document.getElementById('simBox').classList.toggle('on',on);document.getElementById('nav').hidden=on;
+  document.getElementById('simBtn').textContent=on?'New simulation':'Start exam simulation';
+  document.getElementById('simTitle').textContent=on?(SIM.pq?`Exam simulation · ${fmtT(SIM.pq)} per question`:`Exam simulation in progress · ${SIM.mins} min`):'Exam simulator';
+  document.getElementById('simText').textContent=on?(SIM.pq?'One question at a time. When its clock runs out, it locks and the next one appears, even mid-problem. Next question moves on early; you can’t go back. Everything is graded after the last question.':'Hints and checking are locked. Press Grade exam at the bottom when you finish; when time runs out, your answers lock and are graded automatically.'):'25 questions spread across Chapters 6–8 (7 / 12 / 6) with new versions and random cases. Hints stay locked until you submit.';
+  if(!on){document.getElementById('pqBar').hidden=true;document.getElementById('pqNext').hidden=true;document.getElementById('gradeBtn').hidden=false;}}
+function pqFreeze(i){const el=document.getElementById(`qq${i}`);if(el)el.querySelectorAll('input,select').forEach(x=>x.disabled=true);}
+function pqShow(){const live=SIM.cur<Q.length&&!examDone;Q.forEach((_,i)=>{const el=document.getElementById(`qq${i}`);if(el)el.hidden=live&&i!==SIM.cur;});
+  document.getElementById('pqNext').hidden=!live;document.getElementById('gradeBtn').hidden=live;document.getElementById('pqBar').hidden=!live;
+  if(live){document.getElementById('pqNext').textContent=SIM.cur===Q.length-1?'Finish and grade':'Next question →';document.getElementById('simTitle').textContent=`Question ${SIM.cur+1} of ${Q.length} · ${fmtT(SIM.pq)} each`;}}
+function pqTick(){stopTimer();document.getElementById('timer').hidden=false;const bar=document.getElementById('pqBar'),sp=bar.querySelector('span');
+  const tick=()=>{left=Math.max(0,Math.round((SIM.qEnd-Date.now())/1000));show();sp.style.width=(100*left/SIM.pq)+'%';bar.classList.toggle('low',left<=20);if(left===0){stopTimer();pqAdvance(true);}};tick();if(left>0)tId=setInterval(tick,1000);}
+function pqFinish(){stopTimer();SIM.cur=Q.length;saveSim();save();pqShow();warned=true;document.getElementById('gradeBtn').click();}
+function pqAdvance(timedOut){if(!SIM||!SIM.pq||SIM.cur>=Q.length||examDone)return;if(timedOut)(SIM.out=SIM.out||[]).push(SIM.cur);
+  save();pqFreeze(SIM.cur);SIM.cur++;if(SIM.cur>=Q.length){pqFinish();return;}
+  SIM.qEnd=Date.now()+SIM.pq*1000;saveSim();pqShow();pqTick();const el=document.getElementById(`qq${SIM.cur}`);el.scrollIntoView({block:'start'});window.scrollBy(0,-90);}
+document.getElementById('pqNext').addEventListener('click',()=>pqAdvance(false));
+function simTick(){stopTimer();document.getElementById('timer').hidden=false;const tick=()=>{left=Math.max(0,Math.round((SIM.end-Date.now())/1000));show();if(left===0){stopTimer();if(!examDone){warned=true;document.getElementById('gradeBtn').click();document.getElementById('status').textContent="Time's up: your answers were locked and graded.";}}};tick();if(left>0)tId=setInterval(tick,1000);}
+function enterSim(){KEY=SIMANS;Q=SIM.spec.map(simQ);resetView();simUI(true);render();
+  if(SIM.pq){if(SIM.cur==null){SIM.cur=0;SIM.qEnd=Date.now()+SIM.pq*1000;SIM.out=[];saveSim();}
+    for(let i=0;i<Math.min(SIM.cur,Q.length);i++)pqFreeze(i);
+    while(!SIM.done&&SIM.cur<Q.length&&Date.now()>=SIM.qEnd){SIM.out.push(SIM.cur);pqFreeze(SIM.cur);SIM.cur++;if(SIM.cur<Q.length)SIM.qEnd+=SIM.pq*1000;}saveSim();
+    if(SIM.done||SIM.cur>=Q.length){pqShow();pqFinish();}else{pqShow();pqTick();}window.scrollTo(0,0);return;}
+  if(SIM.done||Date.now()>=SIM.end){left=0;document.getElementById('timer').hidden=false;show();warned=true;document.getElementById('gradeBtn').click();}else simTick();window.scrollTo(0,0);}
+function exitSim(){SIM=null;saveSim();try{localStorage.removeItem(SIMANS);}catch(e){}KEY=ANS0;Q=SLOTS.map((_,i)=>genQ(i,seeds[i],cases[i]));resetView();simUI(false);render();window.scrollTo(0,0);}
+let simArm=false;
+document.getElementById('simBtn').addEventListener('click',e=>{if(SIM&&!examDone&&!simArm){simArm=true;e.target.textContent='Press again to throw this one away';setTimeout(()=>{simArm=false;if(SIM)e.target.textContent='New simulation';},4000);return;}
+  simArm=false;const clk=+document.getElementById('simClock').value;const pq=clk<0?-clk:0;const mins=pq?+(pq*25/60).toFixed(1):clk;
+  SIM={spec:makeSim(),mins,pq,start:Date.now(),end:Date.now()+mins*60000,done:false};saveSim();try{localStorage.removeItem(SIMANS);}catch(err){}enterSim();});
+document.getElementById('simExit').addEventListener('click',exitSim);
+document.getElementById('gradeBtn').addEventListener('click',()=>{if(SIM&&examDone&&!SIM.done){SIM.done=true;SIM.used=Math.min(SIM.mins*60,Math.round((Date.now()-SIM.start)/1000));saveSim();}});
+
+/* ---------- speed drills ---------- */
+const DRILLS={
+ shape:{n:'AXₘEₙ → molecular shape',gen:r=>{const k=pick(r,Object.keys(SHAPE_OF));const [x,e]=k.split(',').map(Number);return {q:sub(`AX${x}${e?`E${e>1?e:''}`:''}`),a:SHAPE_OF[k],opts:SHAPES};}},
+ mol:{n:'Molecule → shape',gen:r=>{const m=pick(r,MOLS);return {q:m.h,a:shapeOf(m),opts:SHAPES};}},
+ hyb:{n:'Molecule → hybridization of the center',gen:r=>{const m=pick(r,MOLS);return {q:m.h,a:HYBOF[m.X+m.E],opts:HYB};}},
+ ang:{n:'Molecule → ideal bond angle',gen:r=>{const m=pick(r,MOLS.filter(m=>m.X+m.E!==5));return {q:m.h,a:ANGLE[m.X+m.E],opts:['180°','120°','109.5°','90°']};}},
+ den:{n:'Bond → bond type (ΔEN)',gen:r=>{const [a,b]=pick(r,DENP);const d=Math.abs(EN[a]-EN[b]);return {q:`${a}–${b} <span class="dim">(${EN[a].toFixed(1)}, ${EN[b].toFixed(1)})</span>`,a:bondType(d),opts:BT};}},
+ imf:{n:'Substance → strongest IMF',gen:r=>{const k=pick(r,IMFS);return {q:F(k),a:IMF[SUBS[k].t],opts:IMF};}},
+ pol:{n:'Molecule → polar or nonpolar',gen:r=>{const m=pick(r,MOLS.filter(m=>m.p!==null));return {q:m.h,a:m.p?'polar':'nonpolar',opts:['polar','nonpolar']};}}};
+let DR={deck:'shape',cur:null,t0:0,n:0,ok:0,streak:0,times:[]};
+function drillBest(d){try{return JSON.parse(localStorage.getItem('chem3-drill-'+d)||'null');}catch(e){return null;}}
+function drillNext(){const D=DRILLS[DR.deck];DR.cur=D.gen(Math.random);DR.t0=performance.now();
+  document.getElementById('drQ').innerHTML=DR.cur.q;document.getElementById('drOpts').innerHTML=DR.cur.opts.map(o=>`<button type="button" class="dopt">${o}</button>`).join('');document.getElementById('drFb').textContent='';}
+function drillStats(){const avg=DR.times.length?DR.times.reduce((a,b)=>a+b,0)/DR.times.length:0;const best=drillBest(DR.deck);
+  document.getElementById('drStats').innerHTML=`${DR.ok} / ${DR.n} correct · streak ${DR.streak} · avg ${avg?avg.toFixed(1)+' s':'–'}${best?` · best avg ${best.avg.toFixed(1)} s (${best.n} cards)`:''}`;}
+document.getElementById('drOpts').addEventListener('click',e=>{const b=e.target.closest('.dopt');if(!b||!DR.cur||DR.lock)return;const ok=b.textContent===DR.cur.a;const dt=(performance.now()-DR.t0)/1000;
+  DR.n++;if(ok){DR.ok++;DR.streak++;DR.times.push(dt);}else DR.streak=0;b.classList.add(ok?'right':'wrong');
+  if(!ok)[...document.querySelectorAll('.dopt')].find(x=>x.textContent===DR.cur.a).classList.add('right');
+  document.getElementById('drFb').innerHTML=ok?`✓ ${dt.toFixed(1)} s`:`✗ It's <b>${DR.cur.a}</b>`;
+  if(DR.n>=10&&DR.times.length){const avg=DR.times.reduce((a,b)=>a+b,0)/DR.times.length;const best=drillBest(DR.deck);if(DR.ok/DR.n>=0.8&&(!best||avg<best.avg)){try{localStorage.setItem('chem3-drill-'+DR.deck,JSON.stringify({avg,n:DR.n}));}catch(err){}}}
+  drillStats();DR.lock=1;setTimeout(()=>{DR.lock=0;drillNext();},ok?500:1600);});
+document.getElementById('drDeck').innerHTML=Object.entries(DRILLS).map(([k,d])=>`<option value="${k}">${d.n}</option>`).join('');
+document.getElementById('drDeck').addEventListener('change',e=>{DR={deck:e.target.value,cur:null,n:0,ok:0,streak:0,times:[]};drillNext();drillStats();});
+document.getElementById('drStart').addEventListener('click',()=>{document.getElementById('drPanel').hidden=false;document.getElementById('drStart').hidden=true;DR={deck:document.getElementById('drDeck').value,cur:null,n:0,ok:0,streak:0,times:[]};drillNext();drillStats();});
+
+/* ---------- start ---------- */
+try{SIM=JSON.parse(localStorage.getItem(SIMKEY)||'null');if(SIM&&!(SIM.spec&&SIM.spec.every(s=>SLOTS[s.slot])))SIM=null;}catch(e){SIM=null;}
+if(SIM)enterSim();else render();
+
+
+</script>
+
+</body>
+</html>
